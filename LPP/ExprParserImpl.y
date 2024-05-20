@@ -37,28 +37,69 @@ void yyerror(const ExprParser& parse, const char *msg)\
 }
 
 
-%token OpAdd "+"
-%token OpSub "-"
-%token OpMult "*"
-%token OpenPar "("
-%token ClosePar ")"
-%token Number "number"
-%token SemiColon ";"
+%token OP_ADD "+"
+%token OP_SUB "-"
+%token OP_MULT "*"
+%token OPEN_PAR "("
+%token CLOSE_PAR ")"
+%token NUMBER "number"
+%token COLON ":"
 %token ID "ID"
-%token OpEq "="
-%token OpCurBra "{"
-%token OpCloBra "}"
-%token INT "int"
-%token FOR "for"
-%token OpGt ">"
-%token OpLt "<"
-%token OpGe ">="
-%token OpLe "<="
-%token OpNe "!="
-%token OpInc "++"
-%token OpDec "--"
-%token IF, "if",
-%token ELSE, "else"
+%token OP_EQ "="
+%token OPEN_BRA "["
+%token CLOSE_BRA "]"
+%token OP_GT ">"
+%token OP_LT "<"
+%token OP_GE ">="
+%token OP_LE "<="
+%token OP_NE "<>"
+%token ENTERO "ENTERO"
+%token REAL "REAL"
+%token CADENA "CADENA"
+%token BOOLEANO "BOOLEANO"
+%token CARACTER "CARACTER"
+%token ARREGLO "ARREGLO"
+%token DE "DE"
+%token FUNCION "FUNCION"
+%token PROCEDIMIENTO "PROCEDIMIENTO"
+%token VAR "VAR"
+%token INICIO "INICIO"
+%token FIN "FIN"
+%token FINAL "FINAL"
+%token SI "SI"
+%token ENTONCES "ENTONCES"
+%token SINO "SINO"
+%token PARA "PARA"
+%token MIENTRAS "MIENTRAS"
+%token HAGA "HAGA"
+%token LLAMAR "LLAMAR"
+%token REPITA "REPITA"
+%token HASTA "HASTA"
+%token CASO "CASO"
+%token O "O"
+%token Y "Y"
+%token NO "NO"
+%token DIV "DIV"
+%token MOD "MOD"
+%token LEA "LEA"
+%token ESCRIBA "ESCRIBA"
+%token RETORNE "RETORNE"
+%token TIPO "TIPO"
+%token ES "ES"
+%token REGISTRO "REGISTRO"
+%token ARCHIVO "ARCHIVO"
+%token SECUENCIAL "SECUENCIAL"
+%token ABRIR "ABRIR"
+%token COMO "COMO"
+%token LECTURA "LECTURA"
+%token ESCRITURA "ESCRITURA"
+%token CERRAR "CERRAR"
+%token LEER "LEER"
+%token ESCRIBIR "ESCRIBIR"
+%token VERDADERO "VERDADERO"
+%token FALSO "FALSO"
+%token COMMA ","
+%token CARET "^"
 
 %% 
 
@@ -71,51 +112,32 @@ statement_list: statement
 
 statement:  | print_statement
             | assign_statement
-            | if_statement
-           
 ;
 
-assign_statement:ID OpEq expr SemiColon { 
-                                            parse.addVar(std::get<std::string>($1), std::get<double>($3));
-                                        }
+assign_statement:ID OP_EQ expr { }
 ;
 
-print_statement: ID SemiColon           { 
-                                            std::cout <<  std::get<std::string>($1) << "=" << parse.getVar(std::get<std::string>($1)) << std::endl;
-                                        }
+print_statement: ID            { }
 ;
 
-if_statement: IF OpenPar expr ClosePar OpCurBra statement_list OpCloBra {
 
-    if (std::get<bool>($3))
-    {
-        std::cout << "TRUE " << std::get<bool>($3) << std::endl;
-    }
-    {
-        std::cout << "FALSE " << std::get<bool>($3) << std::endl;
-    }
-}
+expr: expr OP_ADD term   { }
+    | expr OP_SUB term   { }
+
+    | expr OP_GT term       { }
+    | expr OP_GE term       { }
+    | expr OP_LT term       { }
+    | expr OP_LE term       { }
+
+    | term              { }
 ;
 
-expr: expr OpAdd term   { $$ = std::get<double>($1) + std::get<double>($3);}
-    | expr OpSub term   { $$ = std::get<double>($1) - std::get<double>($3);}
-
-    | expr OpGt term       { $$ = std::get<double>($1) > std::get<double>($3);}
-    | expr OpGe term       { $$ = std::get<double>($1) >= std::get<double>($3);}
-    | expr OpLt term       { $$ = std::get<double>($1) < std::get<double>($3);}
-    | expr OpLe term       { $$ = std::get<double>($1) <= std::get<double>($3);}
-
-    | term              { $$ = $1;}
+term: term OP_MULT factor      { }
+    | factor                  { }
 ;
 
-term: term OpMult factor      { $$ = std::get<double>($1) * std::get<double>($3);}
-    | factor                  { $$ = $1;}
-;
-
-factor: OpenPar expr ClosePar { $$ = $2; }
-      | Number { $$ = $1;}
-      | ID  { 
-                $$ = parse.getVar(std::get<std::string>($1));
-            } 
+factor: OPEN_PAR expr CLOSE_PAR {}
+      | NUMBER { }
+      | ID  { } 
 ;
 %%
