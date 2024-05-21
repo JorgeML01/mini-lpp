@@ -115,13 +115,31 @@ declaraciones: declaracion
              |
 ;
 
-declaracion:  dec_funcion 
+declaracion:   dec_funcion 
             |  dec_procedimiento
             |  dec_variable 
+            |  dec_funcion
 ;
 
-dec_funcion: 
+dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type declaraciones block { }
 ;
+
+params: param
+      | params COMMA param
+;
+
+param: VAR ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
+     | type ID
+;
+
+type: ENTERO
+    | BOOLEANO
+    | CARACTER
+;
+
+block: INICIO statement_list FIN 
+;
+
 
 dec_procedimiento: 
 ;
@@ -129,6 +147,7 @@ dec_procedimiento:
 dec_variable: dec_entero 
             | dec_booleano
             | dec_caracter
+            | dec_arreglo
 ;
 
 dec_entero: ENTERO lista_dec_enteros
@@ -147,6 +166,11 @@ lista_dec_booleanos : ID
 dec_caracter: CARACTER lista_dec_cadenas
 ;
 
+dec_arreglo:  ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE ENTERO ID 
+            | ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE BOOLEANO ID 
+            | ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE CARACTER ID
+;
+
 lista_dec_cadenas: ID
                  | lista_dec_cadenas COMMA ID
 
@@ -160,18 +184,30 @@ statement_list: statement
 statement:  | print_statement
             | assign_statement
             | si_statement
+            | llamar_statement
+            | return_statement
 ;
 
-assign_statement:ID OP_ASSIGN expr { }
+return_statement: RETORNE expr
+                | 
+
+assign_statement: ID OP_ASSIGN expr 
+                | ID OPEN_BRA NUMBER CLOSE_BRA OP_ASSIGN expr
 ;
 
 print_statement: ESCRIBA IDENT_CADENA { }
-                | ESCRIBA ID {  }
+                | ESCRIBA expr
 ;
 
 si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI { }
             | SI expr ENTONCES statement_list SINO si_statement FIN SI { }
             | SI expr ENTONCES statement_list FIN SI { }
+
+llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR { }
+
+args: expr
+    | args COMMA expr
+;
 
 expr: expr OP_ADD term   { }
     | expr OP_SUB term   { }
@@ -180,7 +216,9 @@ expr: expr OP_ADD term   { }
     | expr OP_LT term       { }
     | expr OP_LE term       { }
     | expr OP_EQ term       { }
-    | term              { }
+    | expr Y expr           { }
+    | expr O expr           { }
+    | term                  { }
 ;
 
 term: term OP_MULT factor      { }
@@ -188,10 +226,12 @@ term: term OP_MULT factor      { }
 ;
 
 factor: OPEN_PAR expr CLOSE_PAR {}
-      | NUMBER { }
-      | ID  { } 
-      | IDENT_CARACTER { }
-      | VERDADERO { }
-      | FALSO     { }
+    | NUMBER { }
+    | ID  { } 
+    | IDENT_CARACTER { }
+    | VERDADERO { }
+    | FALSO     { }
+    | ID OPEN_BRA NUMBER CLOSE_BRA { }
+    | ID OPEN_PAR args CLOSE_PAR { }
 ;
 %%
