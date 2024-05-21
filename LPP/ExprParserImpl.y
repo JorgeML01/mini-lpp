@@ -4,7 +4,7 @@
 
 %parse-param {ExprParser& parse} 
 
-%code top { // parseIml.cpp
+%code top {
 
     #include <iostream>
     #include <string>
@@ -23,7 +23,7 @@ void yyerror(const ExprParser& parse, const char *msg)\
 
 }
 
-%code requires // parseIml.hpp
+%code requires
 {
       #include <unordered_map>
       #include <string>
@@ -121,8 +121,13 @@ declaracion:   dec_funcion
             |  dec_funcion
 ;
 
-dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type declaraciones block
-            |FUNCION ID COLON type declaraciones block 
+dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type dec_variable block 
+            |FUNCION ID COLON type dec_variable block 
+;
+
+
+dec_procedimiento:  PROCEDIMIENTO ID OPEN_PAR params CLOSE_PAR dec_variable block
+                    | PROCEDIMIENTO ID dec_variable block
 ;
 
 params: param
@@ -144,14 +149,16 @@ block: INICIO statement_list FIN
 ;
 
 
-dec_procedimiento:  PROCEDIMIENTO ID OPEN_PAR params CLOSE_PAR declaraciones block
-                    | PROCEDIMIENTO ID declaraciones block
-;
-
 dec_variable: dec_entero 
             | dec_booleano
             | dec_caracter
             | dec_arreglo
+            | dec_variable
+            | dec_variable dec_entero 
+            | dec_variable dec_booleano
+            | dec_variable dec_caracter
+            | dec_variable dec_arreglo
+            |
 ;
 
 dec_entero: ENTERO lista_dec_enteros
