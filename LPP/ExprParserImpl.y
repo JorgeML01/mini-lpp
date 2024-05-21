@@ -121,7 +121,8 @@ declaracion:   dec_funcion
             |  dec_funcion
 ;
 
-dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type declaraciones block { }
+dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type declaraciones block
+            |FUNCION ID COLON type declaraciones block 
 ;
 
 params: param
@@ -129,6 +130,8 @@ params: param
 ;
 
 param: VAR ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
+     | ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
+     | VAR type ID
      | type ID
 ;
 
@@ -141,7 +144,8 @@ block: INICIO statement_list FIN
 ;
 
 
-dec_procedimiento: 
+dec_procedimiento:  PROCEDIMIENTO ID OPEN_PAR params CLOSE_PAR declaraciones block
+                    | PROCEDIMIENTO ID declaraciones block
 ;
 
 dec_variable: dec_entero 
@@ -186,52 +190,70 @@ statement:  | print_statement
             | si_statement
             | llamar_statement
             | return_statement
+            | mientras_statement
+            | para_statement
+            | repita_statement
 ;
 
 return_statement: RETORNE expr
                 | 
-
-assign_statement: ID OP_ASSIGN expr 
-                | ID OPEN_BRA NUMBER CLOSE_BRA OP_ASSIGN expr
 ;
 
-print_statement: ESCRIBA IDENT_CADENA { }
+assign_statement: ID OP_ASSIGN expr 
+                | ID OPEN_BRA expr CLOSE_BRA OP_ASSIGN expr
+;
+
+print_statement: ESCRIBA IDENT_CADENA 
                 | ESCRIBA expr
 ;
 
-si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI { }
-            | SI expr ENTONCES statement_list SINO si_statement FIN SI { }
-            | SI expr ENTONCES statement_list FIN SI { }
+si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI 
+            | SI expr ENTONCES statement_list SINO si_statement FIN SI 
+            | SI expr ENTONCES statement_list FIN SI 
 
-llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR { }
+llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR 
+                | LLAMAR ID
+
+mientras_statement: MIENTRAS expr HAGA statement_list FIN MIENTRAS
+;
+
+para_statement: PARA ID OP_ASSIGN expr HASTA expr HAGA statement_list FIN PARA
+;
+
+repita_statement: REPITA statement_list HASTA expr
+;
 
 args: expr
     | args COMMA expr
+    |
 ;
 
-expr: expr OP_ADD term   { }
-    | expr OP_SUB term   { }
-    | expr OP_GT term       { }
-    | expr OP_GE term       { }
-    | expr OP_LT term       { }
-    | expr OP_LE term       { }
-    | expr OP_EQ term       { }
-    | expr Y expr           { }
-    | expr O expr           { }
-    | term                  { }
+expr: expr OP_ADD term   
+    | expr OP_SUB term   
+    | expr OP_GT term       
+    | expr OP_GE term       
+    | expr OP_LT term       
+    | expr OP_LE term       
+    | expr OP_EQ term
+    | expr OP_NE term       
+    | expr Y expr           
+    | expr O expr           
+    | expr MOD expr           
+    | expr DIV expr           
+    | term                  
 ;
 
-term: term OP_MULT factor      { }
-    | factor                  { }
+term: term OP_MULT factor      
+    | factor                  
 ;
 
-factor: OPEN_PAR expr CLOSE_PAR {}
-    | NUMBER { }
-    | ID  { } 
-    | IDENT_CARACTER { }
-    | VERDADERO { }
-    | FALSO     { }
-    | ID OPEN_BRA NUMBER CLOSE_BRA { }
-    | ID OPEN_PAR args CLOSE_PAR { }
+factor: OPEN_PAR expr CLOSE_PAR 
+    | NUMBER 
+    | ID  
+    | IDENT_CARACTER 
+    | VERDADERO 
+    | FALSO     
+    | ID OPEN_BRA expr CLOSE_BRA 
+    | ID OPEN_PAR args CLOSE_PAR 
 ;
 %%

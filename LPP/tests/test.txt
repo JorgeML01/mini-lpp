@@ -1,42 +1,57 @@
-Entero f
+Arreglo [10] De Entero arr
+Entero i
 
-funcion fibonacci( entero n ):entero
-Entero i, j, k
-inicio
-	si (n=0) o (n=1) entonces
-		retorne 1
-	sino
-		retorne fibonacci(n-1) + fibonacci(n-2)
-	fin si
-fin
+Funcion get_min(var Arreglo [10] de Entero arr, Entero start, Entero end): Entero
+Entero min, i
+Inicio
+    min <- start
 
-inicio
-    f <- fibonacci(0)
-    Escriba f
-    f <- fibonacci(1)
-    Escriba f
-    f <- fibonacci(2)
-    Escriba f
-    f <- fibonacci(3)
-    Escriba f
-    f <- fibonacci(4)
-    Escriba f
-    f <- fibonacci(5)
-    Escriba f
-    f <- fibonacci(6)
-    Escriba f
-    f <- fibonacci(7)
-    Escriba f
-    f <- fibonacci(8)
-    Escriba f
-    f <- fibonacci(9)
-    Escriba f
-    f <- fibonacci(10)
-    Escriba f
-    f <- fibonacci(11)
-    Escriba f
-    f <- fibonacci(12)
-    Escriba f
-    f <- fibonacci(13)
-    Escriba f
-fin
+    Para i <- start Hasta end Haga
+        Si arr[min] > arr[i] Entonces
+            min <- i
+        Fin Si
+    Fin Para
+
+    Retorne min
+Fin
+
+Procedimiento printArray(var Arreglo [10] de Entero arr)
+Inicio
+    Para i <- 1 Hasta 10 Haga
+        Escriba arr[i]
+        Escriba ","
+    Fin Para
+Fin
+
+Procedimiento selection_sort(var Arreglo [10] de Entero arr, Entero start, Entero end)
+Entero pos, temp
+Entero i
+Inicio
+    Si start < end Entonces
+        pos <- get_min(arr, start, end)
+
+        Si pos <> start Entonces
+            temp <- arr[start]
+            arr[start] <- arr[pos]
+            arr[pos] <- temp
+        Fin Si
+        Llamar selection_sort(arr, start + 1, end)
+    Fin Si
+Fin
+
+Inicio
+    arr[1] <- 100
+    arr[2] <- 2
+    arr[3] <- 67
+    arr[4] <- 38
+    arr[5] <- 76
+    arr[6] <- 12
+    arr[7] <- 50
+    arr[8] <- 62
+    arr[9] <- 14
+    arr[10] <- 60
+
+    Llamar selection_sort(arr, 1, 10)
+
+    Llamar printArray(arr)
+Fin
