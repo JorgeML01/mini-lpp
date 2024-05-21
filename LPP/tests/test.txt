@@ -1,1 +1,15 @@
-x=5;
+Entero a, b, c
+
+Inicio
+    a <- 115
+    
+   Si a=12 Entonces
+   	   Escriba "12"
+	   Sino Si a=13 Entonces
+	   		Escriba "13"
+	   Sino
+	   		Escriba "Ninguno"
+	   Fin Si
+   Fin Si
+
+Fin

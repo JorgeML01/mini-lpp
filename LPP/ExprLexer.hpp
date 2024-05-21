@@ -19,7 +19,7 @@ enum class Token: int {
     NUMBER = 263,
     COLON = 264,
     ID = 265,
-    OP_EQ = 266,
+    OP_ASSIGN = 266,
     OPEN_BRA = 267,
     CLOSE_BRA = 268,
     OP_GT = 269,
@@ -74,6 +74,10 @@ enum class Token: int {
     FALSO = 318,
     COMMA = 319,
     CARET = 320,
+    QUOTE = 321,
+    IDENT_CADENA = 322,
+    IDENT_CARACTER = 323,
+    OP_EQ = 324,
 };
 
 class ExprLexer

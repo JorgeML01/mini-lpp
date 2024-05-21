@@ -45,7 +45,7 @@ void yyerror(const ExprParser& parse, const char *msg)\
 %token NUMBER "number"
 %token COLON ":"
 %token ID "ID"
-%token OP_EQ "="
+%token OP_ASSIGN "<-"
 %token OPEN_BRA "["
 %token CLOSE_BRA "]"
 %token OP_GT ">"
@@ -100,10 +100,57 @@ void yyerror(const ExprParser& parse, const char *msg)\
 %token FALSO "FALSO"
 %token COMMA ","
 %token CARET "^"
+%token QUOTE "\""
+%token IDENT_CADENA "identificador cadena"
+%token IDENT_CARACTER "identificador caracter"
+%token OP_EQ "="
 
 %% 
 
-input: statement_list
+input: declaraciones inicio
+;
+
+declaraciones: declaracion 
+             | declaraciones declaracion
+             |
+;
+
+declaracion:  dec_funcion 
+            |  dec_procedimiento
+            |  dec_variable 
+;
+
+dec_funcion: 
+;
+
+dec_procedimiento: 
+;
+
+dec_variable: dec_entero 
+            | dec_booleano
+            | dec_caracter
+;
+
+dec_entero: ENTERO lista_dec_enteros
+;
+
+lista_dec_enteros : ID
+                 | lista_dec_enteros COMMA ID
+
+
+dec_booleano: BOOLEANO lista_dec_booleanos
+;
+
+lista_dec_booleanos : ID
+                 | lista_dec_booleanos COMMA ID
+
+dec_caracter: CARACTER lista_dec_cadenas
+;
+
+lista_dec_cadenas: ID
+                 | lista_dec_cadenas COMMA ID
+
+inicio: INICIO statement_list FIN
 ;
 
 statement_list: statement
@@ -112,23 +159,27 @@ statement_list: statement
 
 statement:  | print_statement
             | assign_statement
+            | si_statement
 ;
 
-assign_statement:ID OP_EQ expr { }
+assign_statement:ID OP_ASSIGN expr { }
 ;
 
-print_statement: ID            { }
+print_statement: ESCRIBA IDENT_CADENA { }
+                | ESCRIBA ID {  }
 ;
 
+si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI { }
+            | SI expr ENTONCES statement_list SINO si_statement FIN SI { }
+            | SI expr ENTONCES statement_list FIN SI { }
 
 expr: expr OP_ADD term   { }
     | expr OP_SUB term   { }
-
     | expr OP_GT term       { }
     | expr OP_GE term       { }
     | expr OP_LT term       { }
     | expr OP_LE term       { }
-
+    | expr OP_EQ term       { }
     | term              { }
 ;
 
@@ -139,5 +190,8 @@ term: term OP_MULT factor      { }
 factor: OPEN_PAR expr CLOSE_PAR {}
       | NUMBER { }
       | ID  { } 
+      | IDENT_CARACTER { }
+      | VERDADERO { }
+      | FALSO     { }
 ;
 %%
