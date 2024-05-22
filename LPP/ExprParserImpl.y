@@ -107,9 +107,31 @@ void yyerror(const ExprParser& parse, const char *msg)\
 
 %% 
 
-input: dec_variable declaraciones inicio
+input: dec_variable declaraciones block
 ;
 
+// BLOQUES.
+block: INICIO statement_list FIN 
+;
+
+// PARÁMETROS.
+params: param
+      | params COMMA param
+;
+
+param: VAR ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
+     | ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
+     | VAR type ID
+     | type ID
+;
+
+type: ENTERO
+    | BOOLEANO
+    | CARACTER
+;
+
+
+// DECLARACIONES.
 declaraciones: declaracion 
              | declaraciones declaracion
              |
@@ -129,23 +151,6 @@ dec_procedimiento:  PROCEDIMIENTO ID OPEN_PAR params CLOSE_PAR dec_variable bloc
                     | PROCEDIMIENTO ID dec_variable block
 ;
 
-params: param
-      | params COMMA param
-;
-
-param: VAR ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
-     | ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
-     | VAR type ID
-     | type ID
-;
-
-type: ENTERO
-    | BOOLEANO
-    | CARACTER
-;
-
-block: INICIO statement_list FIN 
-;
 
 dec_variable: dec_entero 
             | dec_booleano
@@ -158,18 +163,20 @@ dec_variable: dec_entero
             |
 ;
 
+
 dec_entero: ENTERO lista_dec_enteros
 ;
 
 lista_dec_enteros : ID
                  | lista_dec_enteros COMMA ID
-
+;
 
 dec_booleano: BOOLEANO lista_dec_booleanos
 ;
 
 lista_dec_booleanos : ID
                  | lista_dec_booleanos COMMA ID
+;
 
 dec_caracter: CARACTER lista_dec_cadenas
 ;
@@ -181,10 +188,9 @@ dec_arreglo:  ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE ENTERO ID
 
 lista_dec_cadenas: ID
                  | lista_dec_cadenas COMMA ID
-
-inicio: INICIO statement_list FIN
 ;
 
+// STATEMENTS.
 statement_list: statement
             | statement_list statement
 ;
@@ -208,8 +214,11 @@ assign_statement: ID OP_ASSIGN expr
                 | ID OPEN_BRA expr CLOSE_BRA OP_ASSIGN expr
 ;
 
-print_statement: ESCRIBA IDENT_CADENA 
-                | ESCRIBA expr
+print_statement: ESCRIBA text
+;
+
+text: expr
+    | text COMMA expr
 ;
 
 lea_statement: LEA ID
@@ -234,6 +243,8 @@ para_statement: PARA ID OP_ASSIGN expr HASTA expr HAGA statement_list FIN PARA
 repita_statement: REPITA statement_list HASTA expr
 ;
 
+
+// EXPRESSIONS.
 args: expr
     | args COMMA expr
     |
@@ -247,10 +258,12 @@ expr: expr OP_ADD term
     | expr OP_LE term       
     | expr OP_EQ term
     | expr OP_NE term       
-    | expr Y expr           
-    | expr O expr           
-    | expr MOD expr           
-    | expr DIV expr           
+    | expr Y term           
+    | expr O term           
+    | expr MOD term           
+    | expr DIV term           
+    | expr CARET term
+    | NO expr
     | term                  
 ;
 
@@ -260,11 +273,14 @@ term: term OP_MULT factor
 
 factor: OPEN_PAR expr CLOSE_PAR 
     | NUMBER 
+    | OP_SUB NUMBER
     | ID  
     | IDENT_CARACTER 
+    | IDENT_CADENA
     | VERDADERO 
     | FALSO     
     | ID OPEN_BRA expr CLOSE_BRA 
     | ID OPEN_PAR args CLOSE_PAR 
 ;
+
 %%
