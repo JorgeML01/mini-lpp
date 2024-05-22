@@ -107,7 +107,7 @@ void yyerror(const ExprParser& parse, const char *msg)\
 
 %% 
 
-input: declaraciones inicio
+input: dec_variable declaraciones inicio
 ;
 
 declaraciones: declaracion 
@@ -117,8 +117,7 @@ declaraciones: declaracion
 
 declaracion:   dec_funcion 
             |  dec_procedimiento
-            |  dec_variable 
-            |  dec_funcion
+            |  
 ;
 
 dec_funcion: FUNCION ID OPEN_PAR params CLOSE_PAR COLON type dec_variable block 
@@ -148,12 +147,10 @@ type: ENTERO
 block: INICIO statement_list FIN 
 ;
 
-
 dec_variable: dec_entero 
             | dec_booleano
             | dec_caracter
             | dec_arreglo
-            | dec_variable
             | dec_variable dec_entero 
             | dec_variable dec_booleano
             | dec_variable dec_caracter
@@ -200,6 +197,7 @@ statement:  | print_statement
             | mientras_statement
             | para_statement
             | repita_statement
+            | lea_statement
 ;
 
 return_statement: RETORNE expr
@@ -214,12 +212,18 @@ print_statement: ESCRIBA IDENT_CADENA
                 | ESCRIBA expr
 ;
 
+lea_statement: LEA ID
+            | 
+;
+
 si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI 
             | SI expr ENTONCES statement_list SINO si_statement FIN SI 
             | SI expr ENTONCES statement_list FIN SI 
+;
 
 llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR 
                 | LLAMAR ID
+;
 
 mientras_statement: MIENTRAS expr HAGA statement_list FIN MIENTRAS
 ;

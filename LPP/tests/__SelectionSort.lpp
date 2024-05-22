@@ -39,6 +39,7 @@ Inicio
     Fin Si
 Fin
 
+
 Inicio
     arr[1] <- 100
     arr[2] <- 2
