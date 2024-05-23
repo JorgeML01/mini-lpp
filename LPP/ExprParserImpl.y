@@ -202,19 +202,36 @@ lista_dec_cadenas: ID
 ;
 
 // STATEMENTS.
-statement_list: statement
-            | statement_list statement
+statement_list:  statement_list statement 
+                | statement 
 ;
 
 statement:  | print_statement
             | assign_statement
-            | si_statement
             | llamar_statement
             | return_statement
             | mientras_statement
             | para_statement
             | repita_statement
             | lea_statement
+            | si_statement
+            |
+;
+
+si_statement: SI expr ENTONCES statement_list sino_si_statement sino_statement
+;
+
+sino_si_statement:SINO SI expr ENTONCES statement_list sino_si_statement
+                | SINO SI expr ENTONCES statement_list FIN SI
+                | SINO statement_list FIN SI
+                | FIN SI
+                |
+;
+
+sino_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI
+                | SI expr ENTONCES statement_list SINO sino_si_statement
+                | SI expr ENTONCES statement_list FIN SI
+                |
 ;
 
 return_statement: RETORNE expr
@@ -229,16 +246,11 @@ print_statement: ESCRIBA text
 ;
 
 text: expr
-    | text COMMA expr
+    | expr COMMA text
 ;
 
 lea_statement: LEA ID
             | LEA ID OPEN_BRA expr CLOSE_BRA
-;
-
-si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI 
-            | SI expr ENTONCES statement_list SINO si_statement FIN SI 
-            | SI expr ENTONCES statement_list FIN SI 
 ;
 
 llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR 
