@@ -1,15 +1,30 @@
-Entero x
+Entero a, b
 
-funcion Test(Entero x): Entero
-inicio
-    retorne x + 100
-fin
+Inicio
+    a <- 10
+    Si a < 10 Entonces
+        Escriba 0
+    Sino Si a > 10 Entonces
+        Escriba 100
+    Sino Si a = 10 Entonces
+        Escriba 10
+    Fin Si
 
-inicio
-    Llamar Limpiar_Pantalla
-    x <- 100
-    Escriba Test(x)
-    Llamar Nueva_Linea
-    Escriba Test(200)
-    Llamar Nueva_Linea
-fin
+    a <- 5
+    Si a < 10 Entonces
+        Escriba 'A'
+    Sino Si a > 10 Entonces
+        Escriba 100
+    Sino Si a = 10 Entonces
+        Escriba 10
+    Fin Si
+
+    a <- 73
+    Si a < 10 Entonces
+        Escriba 0
+    Sino Si a > 10 Entonces
+        Escriba 100
+    Sino Si a = 10 Entonces
+        Escriba 10
+    Fin Si
+Fin

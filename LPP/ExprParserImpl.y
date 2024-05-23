@@ -128,6 +128,7 @@ param: VAR ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type ID
 type: ENTERO
     | BOOLEANO
     | CARACTER
+    | ID
 ;
 
 
@@ -156,13 +157,23 @@ dec_variable: dec_entero
             | dec_booleano
             | dec_caracter
             | dec_arreglo
+            | dec_tipo
             | dec_variable dec_entero 
             | dec_variable dec_booleano
             | dec_variable dec_caracter
             | dec_variable dec_arreglo
+            | dec_variable dec_tipo
             |
 ;
 
+
+dec_tipo:   TIPO ID ES type 
+            | TIPO ID ES ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type
+            | nuevo_tipo
+
+nuevo_tipo: ID
+            | ID COMMA nuevo_tipo
+;
 
 dec_entero: ENTERO lista_dec_enteros
 ;
@@ -222,7 +233,7 @@ text: expr
 ;
 
 lea_statement: LEA ID
-            | 
+            | LEA ID OPEN_BRA expr CLOSE_BRA
 ;
 
 si_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI 
