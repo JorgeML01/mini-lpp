@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "ExprLexer.hpp"
-#include "ExprParser.hpp"
+#include "LPPLexer.hpp"
+#include "LPPParser.hpp"
 
 
 int main(int argc, char *argv[]) 
@@ -18,8 +18,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    ExprLexer lexer(in);
-    ExprParser parser(lexer);
+    LPPLexer lexer(in);
+    LPPParser parser(lexer);
 
     try {
         parser.parse();

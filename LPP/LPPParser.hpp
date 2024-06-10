@@ -1,24 +1,24 @@
-#ifndef __EXPR_PARSER_HPP__
-#define __EXPR_PARSER_HPP__
+#ifndef __LPP_PARSER_HPP__
+#define __LPP_PARSER_HPP__
 
-#include "ExprLexer.hpp"
-#include "ExprParserImpl.h"
+#include "LPPLexer.hpp"
+#include "LPPParserImpl.h"
 
-class ExprParser {
+class LPPParser {
 
 private:
-    ExprLexer& lexer;
+    LPPLexer& lexer;
     std::unordered_map<std::string, double> var_map;
 
 public:
-    ExprParser(ExprLexer& lexer) : lexer(lexer) {
+    LPPParser(LPPLexer& lexer) : lexer(lexer) {
         addConstValues();        
     }
 
     int parse();
     void yyerror(const char *msg);
 
-    ExprLexer& getLexer() const {
+    LPPLexer& getLexer() const {
         return lexer;
     }
 

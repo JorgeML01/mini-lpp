@@ -2,21 +2,21 @@
 %define parse.error verbose
 %define api.pure full
 
-%parse-param {ExprParser& parse} 
+%parse-param {LPPParser& parse} 
 
 %code top {
 
     #include <iostream>
     #include <string>
     #include <stdexcept>
-    #include "ExprLexerImpl.h"
-    #include "ExprLexer.hpp"
-    #include "ExprParser.hpp"
-    #include "ExprParserImpl.h"
+    #include "LPPLexerImpl.h"
+    #include "LPPLexer.hpp"
+    #include "LPPParser.hpp"
+    #include "LPPParserImpl.h"
 
     #define yylex(v) static_cast<int>(parse.getLexer().nextToken(v))
 
-void yyerror(const ExprParser& parse, const char *msg)\
+void yyerror(const LPPParser& parse, const char *msg)\
 {\
     throw std::runtime_error(std::string(msg) + " at line " + std::to_string(parse.getLexer().getLine()));
 }\
@@ -29,7 +29,7 @@ void yyerror(const ExprParser& parse, const char *msg)\
       #include <string>
       #include <variant>
 
-      class ExprParser;
+      class LPPParser;
 
       using ParserValueType = std::variant<std::string, double, bool>;
       #define YYSTYPE ParserValueType
@@ -104,10 +104,15 @@ void yyerror(const ExprParser& parse, const char *msg)\
 %token IDENT_CADENA "identificador cadena"
 %token IDENT_CARACTER "identificador caracter"
 %token OP_EQ "="
+%token SINO_SI "SINO SI"
+%token FIN_SI "FIN SI"
 
 %% 
 
-input: dec_variable declaraciones block
+input: program
+;
+
+program: dec_variable declaraciones block
 ;
 
 // BLOQUES.
@@ -206,6 +211,10 @@ statement_list:  statement_list statement
                 | statement 
 ;
 
+block_statement: block_statement statement
+                | statement
+;
+
 statement:  | print_statement
             | assign_statement
             | llamar_statement
@@ -215,23 +224,14 @@ statement:  | print_statement
             | repita_statement
             | lea_statement
             | si_statement
-            |
 ;
 
-si_statement: SI expr ENTONCES statement_list sino_si_statement sino_statement
+si_statement: SI expr ENTONCES block_statement si_else_statement
 ;
 
-sino_si_statement:SINO SI expr ENTONCES statement_list sino_si_statement
-                | SINO SI expr ENTONCES statement_list FIN SI
-                | SINO statement_list FIN SI
-                | FIN SI
-                |
-;
-
-sino_statement: SI expr ENTONCES statement_list SINO statement_list FIN SI
-                | SI expr ENTONCES statement_list SINO sino_si_statement
-                | SI expr ENTONCES statement_list FIN SI
-                |
+si_else_statement: SINO_SI expr ENTONCES block_statement si_else_statement
+                 | SINO block_statement FIN_SI
+                 | FIN_SI
 ;
 
 return_statement: RETORNE expr
@@ -257,13 +257,13 @@ llamar_statement: LLAMAR ID OPEN_PAR args CLOSE_PAR
                 | LLAMAR ID
 ;
 
-mientras_statement: MIENTRAS expr HAGA statement_list FIN MIENTRAS
+mientras_statement: MIENTRAS expr HAGA block_statement FIN MIENTRAS
 ;
 
-para_statement: PARA ID OP_ASSIGN expr HASTA expr HAGA statement_list FIN PARA
+para_statement: PARA ID OP_ASSIGN expr HASTA expr HAGA block_statement FIN PARA
 ;
 
-repita_statement: REPITA statement_list HASTA expr
+repita_statement: REPITA block_statement HASTA expr
 ;
 
 

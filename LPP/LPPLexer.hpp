@@ -1,5 +1,5 @@
-#ifndef __ExprLexer_HPP__
-#define __ExprLexer_HPP__
+#ifndef __LPPLexer_HPP__
+#define __LPPLexer_HPP__
 
 #include <iosfwd>
 #include <string>
@@ -78,17 +78,19 @@ enum class Token: int {
     IDENT_CADENA = 322,
     IDENT_CARACTER = 323,
     OP_EQ = 324,
+    SINO_SI = 325,
+    FIN_SI = 326,
 };
 
-class ExprLexer
+class LPPLexer
 {
 public:
     using yyscan_t = void*;
     using ParserValueType = std::variant<std::string, double, bool>;
 
 public:
-    ExprLexer(std::istream& _in);
-    ~ExprLexer();
+    LPPLexer(std::istream& _in);
+    ~LPPLexer();
 
     Token nextToken(ParserValueType *lval)
     { 

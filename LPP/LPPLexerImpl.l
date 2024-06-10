@@ -7,9 +7,9 @@
 %{
 #include <iostream>
 #include <cstdlib>
-#include "ExprLexer.hpp"
+#include "LPPLexer.hpp"
 
-#define YY_DECL Token ExprLexer::nextTokenHelper(yyscan_t yyscanner, ParserValueType *lval)
+#define YY_DECL Token LPPLexer::nextTokenHelper(yyscan_t yyscanner, ParserValueType *lval)
 
 #define yyterminate() return Token::Eof
 
@@ -70,6 +70,8 @@
 "cerrar"	{ return Token::CERRAR; }
 "leer"	{ return Token::LEER; }
 "escribir"	{ return Token::ESCRIBIR; }
+"sino si"   { return Token::SINO_SI; }
+"fin si"    { return Token::FIN_SI; }
 
 "verdadero"	{ *lval = std::atof("1.0"); return Token::VERDADERO; }
 "falso"	{ *lval = std::atof("0.0"); return Token::FALSO; }
