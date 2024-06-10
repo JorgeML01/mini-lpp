@@ -109,10 +109,10 @@ void yyerror(const LPPParser& parse, const char *msg)\
 
 %% 
 
-input: program
+input: start
 ;
 
-program: dec_variable declaraciones block
+start: dec_variable declaraciones block
 ;
 
 // BLOQUES.
