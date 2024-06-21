@@ -119,7 +119,7 @@ void yyerror(const LPPParser& parse, const char *msg)\
 input: start { parse.setProgram(new AddExpr(new NumExpr(2), new NumExpr(3))); }
 ;
 
-start: dec_variable declaraciones block
+start: dec_variable declaraciones block { } // {$$ = new Block(new Block($1, $2), $3); }
 ;
 
 // BLOQUES.
@@ -146,7 +146,7 @@ type: ENTERO
 
 // DECLARACIONES.
 declaraciones: declaracion 
-             | declaraciones declaracion
+             | declaraciones declaracion 
              |
 ;
 

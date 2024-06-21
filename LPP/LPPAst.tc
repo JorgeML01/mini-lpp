@@ -215,22 +215,26 @@ genProgramCode(IfStmt) {
     return {};
 }
 
-
 genProgramCode(WhileStmt) {
     return {};
 }
-
 
 genProgramCode(ForStmt) {
     return {};
 }
 
-
 genProgramCode(AddExpr) {
+    code += expr1->genProgramCode();
+    code += expr2->genProgramCode();
+    code += "mov eax, " + expr1->place + "\n";
+    code += "add eax, " + expr2->place + "\n";
+    
+    std::cout << "ADD EXPR: "  << code << std::endl;
     return {};
 }
 
 genProgramCode(SubExpr) {
+    std::cout << "SUB EXPR" << std::endl;
     return {};
 }
 
@@ -277,6 +281,8 @@ genProgramCode(DivExpr) {
 }
 
 genProgramCode(NumExpr) {
+    place = std::to_string(value);
+    code = "";
     return {};
 }
 

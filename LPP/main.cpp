@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 
     try {
         parser.parse();
+        parser.getProgram()->genProgramCode();
 
     } catch(const std::runtime_error ex){
         std::cerr << ex.what() << "\n";   
