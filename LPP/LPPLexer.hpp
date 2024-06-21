@@ -4,8 +4,8 @@
 #include <iosfwd>
 #include <string>
 #include <iostream> 
-#include <variant>
 #include <vector>
+#include "LPPAst.hpp"
 
 enum class Token: int {
     Eof = 0,
@@ -86,7 +86,7 @@ class LPPLexer
 {
 public:
     using yyscan_t = void*;
-    using ParserValueType = std::variant<std::string, double, bool>;
+    using ParserValueType = AstNode*;
 
 public:
     LPPLexer(std::istream& _in);

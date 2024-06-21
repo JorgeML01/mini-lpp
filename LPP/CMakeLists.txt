@@ -26,7 +26,7 @@ add_custom_command (
 
 FLEX_TARGET(LPPLexer LPPLexerImpl.l
             ${CMAKE_CURRENT_BINARY_DIR}/LPPLexerImpl.cpp
-            DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/LPPLexerImpl.h
+            DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/LPPLexerImpl.hpp
             )
 
 BISON_TARGET(LPPParser LPPParserImpl.y

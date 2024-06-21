@@ -2,17 +2,17 @@
 #define __LPP_PARSER_HPP__
 
 #include "LPPLexer.hpp"
-#include "LPPParserImpl.h"
+#include "LPPParserImpl.hpp"
+#include "LPPAst.hpp"
 
 class LPPParser {
 
 private:
     LPPLexer& lexer;
-    std::unordered_map<std::string, double> var_map;
+    AstNode* program;
 
 public:
-    LPPParser(LPPLexer& lexer) : lexer(lexer) {
-        addConstValues();        
+    LPPParser(LPPLexer& lexer) : lexer(lexer) {  
     }
 
     int parse();
@@ -22,15 +22,14 @@ public:
         return lexer;
     }
 
-    void addVar(const std::string id, double val){
-        var_map[id] = val;
+    void setProgram(AstNode* program){
+        this->program = program;
     }
 
-    double getVar(const std::string id){
-        return var_map[id];
+    AstNode* getProgram(){
+        return program;
     }
 
-    void addConstValues();
 
 };
 

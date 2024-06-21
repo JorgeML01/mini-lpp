@@ -6,13 +6,16 @@
 
 %code top {
 
+    #include "LPPAst.hpp"
+
     #include <iostream>
     #include <string>
     #include <stdexcept>
-    #include "LPPLexerImpl.h"
+    #include "LPPLexerImpl.hpp"
     #include "LPPLexer.hpp"
     #include "LPPParser.hpp"
-    #include "LPPParserImpl.h"
+    #include "LPPParserImpl.hpp"
+
 
     #define yylex(v) static_cast<int>(parse.getLexer().nextToken(v))
 
@@ -27,14 +30,18 @@ void yyerror(const LPPParser& parse, const char *msg)\
 {
       #include <unordered_map>
       #include <string>
-      #include <variant>
+
 
       class LPPParser;
 
-      using ParserValueType = std::variant<std::string, double, bool>;
+      using ParserValueType = AstNode*;
       #define YYSTYPE ParserValueType
       #define YYSTYPE_IS_DECLARED 1
 }
+
+%{
+
+%}
 
 
 %token OP_ADD "+"
@@ -109,7 +116,7 @@ void yyerror(const LPPParser& parse, const char *msg)\
 
 %% 
 
-input: start
+input: start { parse.setProgram(new AddExpr(new NumExpr(2), new NumExpr(3))); }
 ;
 
 start: dec_variable declaraciones block
@@ -272,6 +279,8 @@ args: expr
     | args COMMA expr
     |
 ;
+
+
 
 expr: expr OP_ADD term   
     | expr OP_SUB term   

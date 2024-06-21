@@ -1,17 +1,27 @@
-%{
+%{ // cpp code
 #include <iostream>
 #include "LPPAst.hpp"
+
+// Create a vector from SymbolVector.
+SymbolVector vec;
+
 %}
 
-%decls %{
-#include <string>
-#include <unordered_map>
-#include <variant>
-#include "SemError.hpp"
+%decls %{ // hpp code
+    #include <string>
+    #include <cmath>
+    #include <unordered_map>
+    #include "SemError.hpp"
+    #include <vector>
 
-using stdstring = std::string;
-using Value = std::variant<bool, double>;
-using SymbolTable = std::unordered_map<std::string, Value>;
+    using stdstring = std::string;
+
+    struct structElements {
+        stdstring id;
+        int placeStack;
+    };
+
+    using SymbolVector = std::vector<structElements>;
 
 %}
 
@@ -19,16 +29,22 @@ using SymbolTable = std::unordered_map<std::string, Value>;
 
 
 // NODOS.
-%node AstNode %abstract %typedef
+%node AstNode %abstract %typedef = {
+    %nocreate stdstring place;
+    %nocreate stdstring code;
+}
 
 // STATEMENT NODES.
 %node Stmt AstNode %abstract
+
+%node Program AstNode = {
+    AstNode* stmts;
+}
 
 %node BlockStmt Stmt = {
     AstNode* stmt1;
     AstNode* stmt2;
 }
-
 
 %node AssignStmt Stmt = {
     AstNode *var;
@@ -41,8 +57,8 @@ using SymbolTable = std::unordered_map<std::string, Value>;
 
 %node IfStmt Stmt = {
     AstNode *cond;
-    AstNode *stmt_t; // true
-    AstNode *stmt_f; // false
+    AstNode *stmt_t;
+    AstNode *stmt_f;
 }
 
 %node WhileStmt Stmt = {
@@ -71,198 +87,204 @@ using SymbolTable = std::unordered_map<std::string, Value>;
 %node LessExpr BinaryExpr          
 %node GreaterOrEqualExpr BinaryExpr 
 %node GreaterExpr BinaryExpr
-
+%node AndExpr BinaryExpr
+%node OrExpr BinaryExpr
+%node ModExpr BinaryExpr
+%node DivExpr BinaryExpr
 
 %node NumExpr AstNode = {
-    double value; // Estos valores que pongo aquí son para el constructor.
-                  // Va a tener un double como atributo de clase.
+    int value;
 }
 
 %node IdentExpr AstNode = {
-    stdstring text; // Va a tener un string como atributo de clase.
+    stdstring text;
 }
 
 
 // OPERACIONES.
-%operation %virtual Value eval(AstNode *this, SymbolTable& symb_tbl) // Función eval que retorna un Value.
+%operation %virtual int evalSemantic(AstNode *this)
+%operation %virtual stdstring genProgramCode(AstNode *this) 
 
-
-// Prácticamente es para obtener el valor del nodo.
-eval(AddExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator + only aplicable to double");
-    }
-
-    return std::get<double>(v1) + std::get<double>(v2);
-}
-
-eval(SubExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator - only aplicable to double");
-    }
-
-    return std::get<double>(v1) - std::get<double>(v2);
-}
-
-eval(MultExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator * only aplicable to double");
-    }
-
-    return std::get<double>(v1) * std::get<double>(v2);
-}
-
-eval(EqualExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator == only aplicable to double");
-    }
-
-    return std::get<double>(v1) == std::get<double>(v2);
-}
-
-eval(NotEqualExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator != only aplicable to double");
-    }
-
-    return std::get<double>(v1) != std::get<double>(v2);
-}
-
-eval(LessOrEqualExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator <= only aplicable to double");
-    }
-
-    return std::get<double>(v1) <= std::get<double>(v2);
-}
-
-eval(LessExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator < only aplicable to double");
-    }
-
-    return std::get<double>(v1) < std::get<double>(v2);
-}
-
-eval(GreaterOrEqualExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator >= only aplicable to double");
-    }
-
-    return std::get<double>(v1) >= std::get<double>(v2);
-}
-
-eval(GreaterExpr) {
-    Value v1 = expr1->eval(symb_tbl);
-    Value v2 = expr2->eval(symb_tbl);
-
-    if (!std::holds_alternative<double>(v1) || !std::holds_alternative<double>(v2)) {
-        throw SemError("Operator > only aplicable to double");
-    }
-
-    return std::get<double>(v1) > std::get<double>(v2);
-}
-
-eval(NumExpr) {
-    return value;
-}
-
-eval(IdentExpr) {
-    auto it = symb_tbl.find(text);
-    if (it == symb_tbl.end()) {
-        throw SemError("Variable " + text + " has not been declared");
-    }
-
-    return it->second;
-}
-
-eval(AssignStmt) {
-    Value v = rvalue->eval(symb_tbl);
-    symb_tbl[reinterpret_cast<IdentExpr*>(var)->text] = v;
+evalSemantic(Program) {
     return {};
 }
 
-eval(PrintStmt) {
-    Value v = expr->eval(symb_tbl);
-
-    if (std::holds_alternative<bool>(v)) {
-        std::cout << (std::get<bool>(v) ? "true" : "false") << "\n";
-    } else {
-        std::cout << std::get<double>(v) << "\n";
-    }
+evalSemantic(AddExpr) {
+        
     return {};
 }
 
-eval(IfStmt) {
-    Value v = cond->eval(symb_tbl);
-
-    if (!std::holds_alternative<bool>(v)) {
-        throw SemError("Condition must be a boolean");
-    }
-
-    if (std::get<bool>(v)) {
-        stmt_t->eval(symb_tbl);
-    } else {
-        stmt_f->eval(symb_tbl);
-    }
+evalSemantic(SubExpr) {
     return {};
 }
 
-eval(WhileStmt) {
-    Value v = cond->eval(symb_tbl);
-
-    if (!std::holds_alternative<bool>(v)) {
-        throw SemError("Condition must be a boolean");
-    }
-
-    while (std::get<bool>(v)) {
-        stmt->eval(symb_tbl);
-        v = cond->eval(symb_tbl);
-        std::cout << "STATEMENT" << "\n";
-    }
-
+evalSemantic(MultExpr) {
     return {};
 }
 
-eval(ForStmt) {
-    init->eval(symb_tbl); // Execute the initialization statement
-    Value v = cond->eval(symb_tbl);
-
-    while (std::get<bool>(v)) {
-        stmt->eval(symb_tbl);
-        inc->eval(symb_tbl);
-        v = cond->eval(symb_tbl);
-    }
+evalSemantic(EqualExpr) {
     return {};
 }
 
-eval(BlockStmt) {
-    stmt1->eval(symb_tbl);
-    stmt2->eval(symb_tbl);
+evalSemantic(NotEqualExpr) {
+    return {};
+}
+
+evalSemantic(LessOrEqualExpr) {
+    return {};
+}
+
+evalSemantic(LessExpr) {
+    return {};
+}
+
+evalSemantic(GreaterOrEqualExpr) {
+    return {};
+}
+
+evalSemantic(GreaterExpr) {
+    return {};
+}
+
+evalSemantic(AndExpr) {
+    return {};
+}
+
+evalSemantic(OrExpr) {
+    return {};
+}
+
+evalSemantic(ModExpr) {
+    return {};
+}
+
+
+evalSemantic(DivExpr) {
+    return {};
+}
+
+evalSemantic(NumExpr) {
+    return {};
+}
+
+evalSemantic(IdentExpr) {
+    return {};
+}
+
+evalSemantic(AssignStmt) {
+    return {};
+}
+
+evalSemantic(PrintStmt) {
+    return {};
+}
+
+evalSemantic(IfStmt) {
+    return {};
+}
+
+evalSemantic(WhileStmt) {
+    return {};
+}
+
+evalSemantic(ForStmt) {
+    return {};
+}
+
+evalSemantic(BlockStmt) {
+    return {};
+}
+
+genProgramCode(Program) {
+    return {};
+}
+
+genProgramCode(BlockStmt) {
+    return {};
+}
+
+genProgramCode(AssignStmt) {
+    return {};
+}
+
+genProgramCode(PrintStmt) {
+    return {};
+}
+
+genProgramCode(IfStmt) {
+    return {};
+}
+
+
+genProgramCode(WhileStmt) {
+    return {};
+}
+
+
+genProgramCode(ForStmt) {
+    return {};
+}
+
+
+genProgramCode(AddExpr) {
+    return {};
+}
+
+genProgramCode(SubExpr) {
+    return {};
+}
+
+genProgramCode(MultExpr) {
+    return {};
+}
+
+
+genProgramCode(EqualExpr) {
+    return {};
+}
+
+
+genProgramCode(LessOrEqualExpr) {
+    return {};
+}
+
+genProgramCode(LessExpr) {
+    return {};
+}
+
+genProgramCode(GreaterOrEqualExpr) {
+    return {};
+}
+
+genProgramCode(GreaterExpr) {
+    return {};
+}
+
+genProgramCode(AndExpr) {
+    return {};
+}
+
+genProgramCode(OrExpr) {
+    return {};
+}
+
+genProgramCode(ModExpr) {
+    return {};
+}
+
+genProgramCode(DivExpr) {
+    return {};
+}
+
+genProgramCode(NumExpr) {
+    return {};
+}
+
+genProgramCode(IdentExpr) {
+    return {};
+}
+
+genProgramCode(NotEqualExpr) {
     return {};
 }
 

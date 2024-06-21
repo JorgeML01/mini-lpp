@@ -1,6 +1,6 @@
 #include <fstream>
 #include "LPPLexer.hpp"
-#include "LPPLexerImpl.h"
+#include "LPPLexerImpl.hpp"
 #include <unordered_map>
 #include <iostream>
 
