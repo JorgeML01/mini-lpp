@@ -1,9 +1,21 @@
 %{ // cpp code
-#include <iostream>
-#include "LPPAst.hpp"
+    #include <iostream>
+    #include "LPPAst.hpp"
 
-// Create a vector from SymbolVector.
-SymbolVector vec;
+    // Create a vector from SymbolVector.
+    SymbolVector vec;
+
+	int offset = 4;
+
+	int getOffset(){
+		
+		return offset;
+	}
+
+	int addOffset()
+	{
+		offset += 4;
+	}
 
 %}
 
@@ -18,7 +30,7 @@ SymbolVector vec;
 
     struct structElements {
         stdstring id;
-        int placeStack;
+        stdstring placeStack;
     };
 
     using SymbolVector = std::vector<structElements>;
@@ -34,6 +46,9 @@ SymbolVector vec;
     %nocreate stdstring code;
 }
 
+%node EmptyNode AstNode = {
+}
+
 // STATEMENT NODES.
 %node Stmt AstNode %abstract
 
@@ -44,6 +59,12 @@ SymbolVector vec;
 %node BlockStmt Stmt = {
     AstNode* stmt1;
     AstNode* stmt2;
+}
+
+%node InitialBlockStmt Stmt = {
+    AstNode* stmt1;
+    AstNode* stmt2;
+    AstNode* stmt3;
 }
 
 %node AssignStmt Stmt = {
@@ -73,10 +94,22 @@ SymbolVector vec;
     AstNode *stmt;
 }
 
+%node DecVarStmt Stmt = {
+    AstNode *var1;
+    AstNode *var2;
+}
+
+%node IntDecl AstNode = {
+    AstNode* var1;
+    AstNode* var2;
+}
+
+
 %node BinaryExpr AstNode %abstract = {
     AstNode *expr1;
     AstNode *expr2;
 }
+
 
 %node AddExpr BinaryExpr
 %node SubExpr BinaryExpr
@@ -105,12 +138,13 @@ SymbolVector vec;
 %operation %virtual int evalSemantic(AstNode *this)
 %operation %virtual stdstring genProgramCode(AstNode *this) 
 
+
+// Evaluación de la semántica.
 evalSemantic(Program) {
     return {};
 }
 
 evalSemantic(AddExpr) {
-        
     return {};
 }
 
@@ -195,12 +229,41 @@ evalSemantic(BlockStmt) {
     return {};
 }
 
-genProgramCode(Program) {
+evalSemantic(DecVarStmt){
     return {};
 }
 
-genProgramCode(BlockStmt) {
+evalSemantic(IntDecl) {
     return {};
+}
+
+evalSemantic(InitialBlockStmt){
+    return {};
+}
+
+// Generación de código
+
+genProgramCode(InitialBlockStmt) {
+    code += stmt1->genProgramCode();
+    
+    std::cout<< "\nKIND: " << stmt1->getKind() << std::endl;
+    std::cout<< "\nKIND: " << stmt2->getKind() << std::endl;
+    std::cout<< "\nKIND: " << stmt3->getKind() << std::endl;
+    std::cout << "CODE: " << code << std::endl;
+    code += stmt2->genProgramCode();
+    std::cout << "CODE2: " << code << std::endl;
+    code += stmt3->genProgramCode();
+
+    return code;
+}
+
+genProgramCode(BlockStmt) {
+
+    code += stmt1->genProgramCode();
+    code += stmt2->genProgramCode();
+
+
+    return code;
 }
 
 genProgramCode(AssignStmt) {
@@ -229,13 +292,11 @@ genProgramCode(AddExpr) {
     code += "mov eax, " + expr1->place + "\n";
     code += "add eax, " + expr2->place + "\n";
     
-    std::cout << "ADD EXPR: "  << code << std::endl;
-    return {};
+    return code;
 }
 
 genProgramCode(SubExpr) {
-    std::cout << "SUB EXPR" << std::endl;
-    return {};
+    return code;
 }
 
 genProgramCode(MultExpr) {
@@ -280,17 +341,80 @@ genProgramCode(DivExpr) {
     return {};
 }
 
+genProgramCode(NotEqualExpr) {
+    return code;
+}
+
 genProgramCode(NumExpr) {
     place = std::to_string(value);
     code = "";
-    return {};
+    return code;
 }
 
 genProgramCode(IdentExpr) {
-    return {};
+
+    bool found = false;
+    for (auto &element : vec) {
+        if (element.id == text) {
+            place = element.placeStack;
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found) {
+        place = "[ebp + " + std::to_string(addOffset()) + "]";
+        vec.push_back({text, place});
+    }
+
+    return code;
 }
 
-genProgramCode(NotEqualExpr) {
-    return {};
+
+genProgramCode(DecVarStmt) {
+    code += var1->genProgramCode();
+    code += var2->genProgramCode();
+
+
+    return code;
 }
 
+genProgramCode(IntDecl) {
+
+    std::cout << "INT DECLARATION: " << std::endl;
+
+    code += var1->genProgramCode();
+    code += var2->genProgramCode();
+
+    
+    //std::cout << "INT DECLARATION: " << std::endl;
+    return code;
+}
+
+
+genProgramCode(Program) {
+    std::cout << "PROGRAM: " << std::endl;
+    stmts->genProgramCode();
+    code += stmts->code;
+    code += "inicio:\n";
+
+    std::cout << "\n" <<code << std::endl;
+
+    // print the vector.
+    for (auto &element : vec) {
+        std::cout << "ID: " << element.id << " PLACE: " << element.placeStack << std::endl;
+    }
+
+    return code;
+}
+
+
+// Empty node.
+genProgramCode(EmptyNode) {
+    return code;
+}
+
+
+evalSemantic(AstNode) {
+    return {};
+}

@@ -116,10 +116,10 @@ void yyerror(const LPPParser& parse, const char *msg)\
 
 %% 
 
-input: start { parse.setProgram(new AddExpr(new NumExpr(2), new NumExpr(3))); }
+input: start { parse.setProgram(new Program($1)); }
 ;
 
-start: dec_variable declaraciones block { } // {$$ = new Block(new Block($1, $2), $3); }
+start: dec_variable declaraciones_func_proc block { $$ = new InitialBlockStmt($1, $2, $3); } // {$$ = new Block(new Block($1, $2), $3); }
 ;
 
 // BLOQUES.
@@ -144,10 +144,10 @@ type: ENTERO
 ;
 
 
-// DECLARACIONES.
-declaraciones: declaracion 
-             | declaraciones declaracion 
-             |
+// declaraciones_func_proc.
+declaraciones_func_proc: declaracion {$$ = new IdentExpr("x"); std::cout << "HOLA" << std::endl;}
+             | declaraciones_func_proc declaracion {$$ = new IdentExpr("x");}
+             | {$$ = new EmptyNode(); }
 ;
 
 declaracion:   dec_funcion 
@@ -165,19 +165,18 @@ dec_procedimiento:  PROCEDIMIENTO ID OPEN_PAR params CLOSE_PAR dec_variable bloc
 ;
 
 
-dec_variable: dec_entero 
+dec_variable: dec_entero { $$ = $1; }
             | dec_booleano
             | dec_caracter
             | dec_arreglo
             | dec_tipo
-            | dec_variable dec_entero 
+            | dec_variable dec_entero { $$ = new DecVarStmt($1, $2);}
             | dec_variable dec_booleano
             | dec_variable dec_caracter
             | dec_variable dec_arreglo
-            | dec_variable dec_tipo
+            | dec_variable dec_tipo { }
             |
 ;
-
 
 dec_tipo:   TIPO ID ES type 
             | TIPO ID ES ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE type
@@ -187,11 +186,12 @@ nuevo_tipo: ID
             | ID COMMA nuevo_tipo
 ;
 
-dec_entero: ENTERO lista_dec_enteros
+dec_entero: ENTERO lista_dec_enteros { $$ = $2;}
 ;
 
-lista_dec_enteros : ID
-                 | lista_dec_enteros COMMA ID
+lista_dec_enteros : ID { $$ = $1; std::cout << "ID" << std::endl;}
+                 | lista_dec_enteros COMMA ID { $$ = new IntDecl($1, $3); std::cout << "ABC" << std::endl;}
+                 |  
 ;
 
 dec_booleano: BOOLEANO lista_dec_booleanos
@@ -218,8 +218,9 @@ statement_list:  statement_list statement
                 | statement 
 ;
 
-block_statement: block_statement statement
-                | statement
+block_statement: block_statement statement { $$ = new BlockStmt($1, $2); }
+                | statement { $$ = $1; }
+                |
 ;
 
 statement:  | print_statement
@@ -282,31 +283,31 @@ args: expr
 
 
 
-expr: expr OP_ADD term   
-    | expr OP_SUB term   
-    | expr OP_GT term       
-    | expr OP_GE term       
-    | expr OP_LT term       
-    | expr OP_LE term       
-    | expr OP_EQ term
-    | expr OP_NE term       
-    | expr Y term           
-    | expr O term           
-    | expr MOD term           
-    | expr DIV term           
-    | expr CARET term
-    | NO expr
-    | term                  
+expr: expr OP_ADD term { $$ = new AddExpr($1, $3);}  
+    | expr OP_SUB term   { $$ = new SubExpr($1, $3);}
+    | expr OP_GT term       { $$ = new GreaterExpr($1, $3); }
+    | expr OP_GE term       { $$ = new GreaterOrEqualExpr($1, $3); }
+    | expr OP_LT term       { $$ = new LessExpr($1, $3); }
+    | expr OP_LE term       { $$ = new LessOrEqualExpr($1, $3);}
+    | expr OP_EQ term       { $$ = new EqualExpr($1, $3); }
+    | expr OP_NE term       { $$ = new NotEqualExpr($1, $3);}
+    | expr Y term           { $$ = new AndExpr($1, $3); }
+    | expr O term           { $$ = new OrExpr($1, $3);}
+    | expr MOD term           { $$ = new ModExpr($1, $3);}
+    | expr DIV term           { $$ = new DivExpr($1, $3);}
+    | expr CARET term        { }
+    | NO expr                  {  }
+    | term                      { $$ = $1; }
 ;
 
-term: term OP_MULT factor      
-    | factor                  
+term: term OP_MULT factor  { $$ = new MultExpr($1, $3); }
+    | factor { $$ = $1; }                
 ;
 
 factor: OPEN_PAR expr CLOSE_PAR 
-    | NUMBER 
+    | NUMBER { $$ = $1; }
     | OP_SUB NUMBER
-    | ID  
+    | ID  { $$ = $1; }
     | IDENT_CARACTER 
     | IDENT_CADENA
     | VERDADERO 
