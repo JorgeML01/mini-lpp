@@ -1,6 +1,9 @@
-Caracter x
+Caracter x, _y
+Entero z
 
 Inicio
-    x <- 'A'
-    Escriba x
+    x <- 'a'
+    escriba x
+    z <- 10
+    escriba z
 Fin

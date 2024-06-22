@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         std::string generatedCode = parser.getProgram()->genProgramCode();
 
         std::string output = runAsm(outputFile.c_str(), generatedCode);
-        std::cout << output;
+        std::cout << output << std::endl;
 
     } catch(const std::runtime_error& ex){
         std::cerr << ex.what() << "\n";   

@@ -9,6 +9,9 @@
 #include <cstdlib>
 #include "LPPLexer.hpp"
 #include "LPPAst.hpp"
+#include <string>
+#include <algorithm>
+
 
 
 #define YY_DECL Token LPPLexer::nextTokenHelper(yyscan_t yyscanner, ParserValueType *lval)
@@ -75,11 +78,17 @@
 "sino si"   { return Token::SINO_SI; }
 "fin si"    { return Token::FIN_SI; }
 
-"verdadero"	{ return Token::VERDADERO; } // A lo mejor toca agregar aquí el booleano para tipo de dato.
-"falso"	{  return Token::FALSO; }       // A lo mejor toca agregar aquí el booleano para tipo de dato.
+"verdadero"	{ *lval = new BooleanExpr(1); return Token::VERDADERO; } 
+"falso"	{ *lval = new BooleanExpr(0); return Token::FALSO; }      
 "CADENA"    { return Token::CADENA; }
-"\""[^\"]*"\""          { return Token::IDENT_CADENA; }
-\'[^\']\'               { return Token::IDENT_CARACTER; }
+"\""[^\"]*"\""          { 
+                            std::string text = std::string(yytext); text.erase(std::remove(text.begin(), text.end(), '\"'), text.end());
+                            *lval = new CadenaExpr(text); return Token::IDENT_CADENA; 
+                        }
+\'[^\']\'               { 
+                            std::string text = std::string(yytext); text.erase(std::remove(text.begin(), text.end(), '\''), text.end());
+                            *lval = new CaracterExpr(text); return Token::IDENT_CARACTER; 
+                        }
 
 [0-9]+(\.[0-9]+)?	{  *lval = new NumExpr(std::atoi(yytext)); return Token::NUMBER; }
 [a-zA-Z_][a-zA-Z0-9_]* {  *lval = new IdentExpr(std::string(yytext));  return Token::ID; }
