@@ -352,7 +352,6 @@ genProgramCode(PrintStmt) {
 
                 std::string etiqueta_1 = create_unique_label(this, "print_stmt_1");
                 std::string etiqueta_2 = create_unique_label(this, "print_stmt_2");
-                std::cout << "casa" << std::endl;
                 code += "\n\tmov eax, " + expr->place;
                 code += "\n\tcmp eax, 0";
                 code += "\n\tje " + etiqueta_1;
@@ -381,18 +380,13 @@ genProgramCode(PrintStmt) {
                 if (index % 4 == 0) {
                     code += "\n\tmov [ebx + " + std::to_string(index) + "], 0x";
                 }
-
                 ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(static_cast<CadenaExpr *>(expr)->cadena[index]);
-
                 if (index >= 0 && (index - 3) % 4 == 0 || index == static_cast<CadenaExpr *>(expr)->cadena.size() - 1) {
                     std::vector<std::string> pairs;
-
                     for (size_t i = 0; i < ss.str().length(); i += 2) {
                         pairs.push_back(ss.str().substr(i, 2));
                     }
-
                     std::reverse(pairs.begin(), pairs.end());
-
                     std::ostringstream result;
                     for (const auto& pair : pairs) {
                         result << pair;
@@ -543,21 +537,44 @@ genProgramCode(ForStmt) {
 }
 
 genProgramCode(AddExpr) {
+
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
     code += "\n\n\t; Suma";
     code += "\n\tmov eax, " + expr1->place;
     code += "\n\tadd eax, " + expr2->place;
     code += "\n\tmov " + place + ", eax";
-    
+
     return code;
 }
 
 genProgramCode(SubExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -572,6 +589,17 @@ genProgramCode(SubExpr) {
 
 genProgramCode(MultExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -589,6 +617,17 @@ genProgramCode(EqualExpr) {
 
     std::string etiqueta_1 = create_unique_label(this, "eq_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "eq_expr_2");
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -615,6 +654,17 @@ genProgramCode(LessOrEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "less_eq_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "less_eq_expr_2");
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
@@ -638,6 +688,17 @@ genProgramCode(LessExpr) {
 
     std::string etiqueta_1 = create_unique_label(this, "less_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "less_expr_2");
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -663,6 +724,17 @@ genProgramCode(GreaterOrEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "ge_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "ge_expr_2");
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
@@ -686,6 +758,17 @@ genProgramCode(GreaterExpr) {
 
     std::string etiqueta_1 = create_unique_label(this, "greater_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "greater_expr_2");
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -711,6 +794,17 @@ genProgramCode(NotEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "not_equal_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "not_equal_expr_2");
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
@@ -732,10 +826,21 @@ genProgramCode(NotEqualExpr) {
 genProgramCode(AndExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
-     code += "\n\t; And expr";
+    code += "\n\t; And expr";
     code += "\n\tmov eax, " + expr1->place;
     code += "\n\tand eax, " + expr2->place;
     code += "\n\tmov " + place + ", eax";
@@ -745,6 +850,17 @@ genProgramCode(AndExpr) {
 
 genProgramCode(OrExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -761,6 +877,17 @@ genProgramCode(OrExpr) {
 // REVISAR
 genProgramCode(ModExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
 
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
@@ -779,6 +906,17 @@ genProgramCode(ModExpr) {
 genProgramCode(DivExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
+    bool expr1IsIdent = expr1->isA(IdentExpr_kind);
+    bool expr2IsIdent = expr2->isA(IdentExpr_kind);
+
+    if (expr1IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr1)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+
+    if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
+        throw SemError("Distintos tipos de datos");
+    }
+    
     code += expr1->genProgramCode(vecDataTypes);
     code += expr2->genProgramCode(vecDataTypes);
 
@@ -872,12 +1010,6 @@ genProgramCode(Program) {
     code += "\n\n\tmov esp, ebp";
     code += "\n\tpop ebp";
     code += "\n\tret";
-
-
-    // print the vector.
-    for (auto &element : vec) {
-        std::cout << "ID: " << element.id << " PLACE: " << element.placeStack << std::endl;
-    }
 
     return code;
 }

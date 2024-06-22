@@ -1,0 +1,7 @@
+Entero x
+
+inicio
+    lea x
+    escriba "edad:"
+    escriba x
+fin

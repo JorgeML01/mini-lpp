@@ -119,8 +119,6 @@ void yyerror(const LPPParser& parse, const char *msg)\
 input: start { parse.setProgram(new Program($1)); }
 ;
 
-/* input: start { parse.setProgram(new Program(new PrintStmt(new BooleanExpr(0)))); }
-; */
 
 start: dec_variable declaraciones_func_proc block { $$ = new InitialBlockStmt($1, $2, $3); } // {$$ = new Block(new Block($1, $2), $3); }
 ;

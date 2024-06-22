@@ -20,10 +20,6 @@ public:
     void yyerror(const char *msg);
 
     SymbolVectorDataTypes& getSymbolVectorDataTypes() {
-        for (int i = 0; i < vecDataTypes.size(); i++) {
-            std::cout << vecDataTypes[i].id << " " << vecDataTypes[i].type << std::endl;
-        }
-
         return vecDataTypes;
     }
 
