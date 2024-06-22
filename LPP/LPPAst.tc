@@ -298,6 +298,8 @@ genProgramCode(AssignStmt) {
         if (getTipo(dynamic_cast<IdentExpr*>(var)->text, vecDataTypes) != "caracter") {
             throw SemError("Tipos de datos incompatibles");
         }
+    } else {
+        rvalue->genProgramCode(vecDataTypes);
     }
     
     code += rvalue->code;
@@ -339,34 +341,35 @@ genProgramCode(PrintStmt) {
             if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "entero") {
                 code += expr->code;
                 code += "\n\tmov eax, 1\t";
-                code += "\n\tmov ebx, " + expr->place + "\t";
+                code += "\n\tmov ebx, " + expr->place + "";
             } else if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "caracter") {
                 code += expr->genProgramCode(vecDataTypes);
-                code += "\n\tmov eax, 11\t";
-                code += "\n\tmov ebx, " + expr->place + "\t";
+                code += "\n\tmov eax, 11";
+                code += "\n\tmov ebx, " + expr->place + "";
             } else if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "booleano") {
-                code += "\n\tmov esi, 0x10000000\t";
-                code += "\n\tlea ebx, [esi+4]\t";
+                code += "\n\tmov esi, 0x10000000";
+                code += "\n\tlea ebx, [esi+4]";
 
                 std::string etiqueta_1 = create_unique_label(this, "print_stmt_1");
                 std::string etiqueta_2 = create_unique_label(this, "print_stmt_2");
-
-                code += "\n\tmove eax, " + expr->place;
+                std::cout << "casa" << std::endl;
+                code += "\n\tmov eax, " + expr->place;
                 code += "\n\tcmp eax, 0";
                 code += "\n\tje " + etiqueta_1;
-                code += "\n\tmov dword [ebx], 0x45445256\t"; // "VERD" en hexadecimal
-                code += "\n\tmov dword [ebx + 4], 0x52454441\t"; // "ADER" en hexadecimal
-                code += "\n\tmov dword [ebx + 8], 0x4F\t"; // "O" en hexadecimal
-                code += "\n\tmov dword [ebx + 9], 0\t";
+                code += "\n\tmov dword [ebx], 0x45445256"; // "VERD" en hexadecimal
+                code += "\n\tmov dword [ebx + 4], 0x52454441"; // "ADER" en hexadecimal
+                code += "\n\tmov dword [ebx + 8], 0x4F"; // "O" en hexadecimal
+                code += "\n\tmov dword [ebx + 9], 0";
+                code += "\n\tjmp " + etiqueta_2;
                 
-                code += etiqueta_1 + ":";
-                code += "\n\tmov dword [ebx], 0x534C4146\t"; // "FALS" en hexadecimal
-                code += "\n\tmov dword [ebx + 4], 0x4F\t"; // "O" en hexadecimal
-                code += "\n\tmov dword [ebx + 5], 0\t";
+                code += "\n\n" + etiqueta_1 + ":";
+                code += "\n\tmov dword [ebx], 0x534C4146"; // "FALS" en hexadecimal
+                code += "\n\tmov dword [ebx + 4], 0x4F"; // "O" en hexadecimal
+                code += "\n\tmov dword [ebx + 5], 0";
 
-                code += etiqueta_2 + ":";
-                code += "\n\tmov eax, 4\t";
-                code += "\n\tlea ebx, [esi+4]\t";
+                code += "\n\n" + etiqueta_2 + ":";
+                code += "\n\tmov eax, 4";
+                code += "\n\tlea ebx, [esi+4]";
             } 
             break;
         case CadenaExpr_kind:
