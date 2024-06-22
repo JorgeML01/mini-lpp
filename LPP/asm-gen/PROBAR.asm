@@ -10,23 +10,36 @@
 inicio:
 	push ebp
 	mov ebp, esp
-	sub esp, 20
+	sub esp, 32
 
 	; AssignStmt 
 	mov eax, 65
 	mov dword[ebp + 20], eax
 
 	; AssignStmt 
-	mov eax, 65
+	mov eax, 11
 	mov dword[ebp + 8], eax
 
 	; AssignStmt 
-	mov eax, 27
+	mov eax, 3
 	mov dword[ebp + 12], eax
 
-	; Suma
+	; Módulo usando restas
 	mov eax, dword[ebp + 8]
-	add eax, dword[ebp + 12]
+	mov dword[ebp - 24], eax
+	mov ebx, dword[ebp + 12]
+	cmp ebx, 0
+	je end_mod2
+loop_mod1:
+	mov eax, dword[ebp - 24]
+	cmp eax, ebx
+	jl end_mod2
+	sub eax, ebx
+	mov dword[ebp - 24], eax
+	jmp loop_mod1
+end_mod2:
+	mov eax, dword[ebp - 24]
+	mov dword[ebp - 32], eax
 	mov dword[ebp - 20], eax
 
 	; AssignStmt 

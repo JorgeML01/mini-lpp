@@ -878,6 +878,9 @@ genProgramCode(OrExpr) {
 genProgramCode(ModExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
+
     bool expr1IsIdent = expr1->isA(IdentExpr_kind);
     bool expr2IsIdent = expr2->isA(IdentExpr_kind);
 
@@ -889,23 +892,41 @@ genProgramCode(ModExpr) {
         throw SemError("Distintos tipos de datos");
     }
 
-    code += expr1->genProgramCode(vecDataTypes);
-    code += expr2->genProgramCode(vecDataTypes);
+    std::string loopLabel = create_unique_label(this, "loop_mod");
+    std::string endLabel = create_unique_label(this, "end_mod");
+    std::string dividend = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+    std::string divisor = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+    std::string remainder = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += "\n\n\t; Mod expr";
-    code += "\n\tmov eax, " + expr1->place;
-    code += "\n\tcdq";
-    code += "\n\tidiv " + expr2->place;
-    code += "\n\tmov " + place + ", edx";
-    code += "\n\tmov eax, edx";
+    code += "\n\n\t; Módulo usando restas";
+    code += "\n\tmov eax, " + expr1->place;        
+    code += "\n\tmov " + dividend + ", eax";       
+    code += "\n\tmov ebx, " + expr2->place;        
+    code += "\n\tcmp ebx, 0";                       
+    code += "\n\tje " + endLabel;                  
+    code += "\n" + loopLabel + ":";
+    code += "\n\tmov eax, " + dividend;            
+    code += "\n\tcmp eax, ebx";                    
+    code += "\n\tjl " + endLabel;                  
+    code += "\n\tsub eax, ebx";                    
+    code += "\n\tmov " + dividend + ", eax";       
+    code += "\n\tjmp " + loopLabel;                
+    code += "\n" + endLabel + ":";
+    code += "\n\tmov eax, " + dividend;            
+    code += "\n\tmov " + remainder + ", eax";      
+    code += "\n\tmov " + place + ", eax";          
 
     return code;
 }
+
 
 // REVISAR
 genProgramCode(DivExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
+
     bool expr1IsIdent = expr1->isA(IdentExpr_kind);
     bool expr2IsIdent = expr2->isA(IdentExpr_kind);
 
@@ -916,16 +937,32 @@ genProgramCode(DivExpr) {
     if (expr2IsIdent && getTipo(dynamic_cast<IdentExpr*>(expr2)->text, vecDataTypes) != "entero") {
         throw SemError("Distintos tipos de datos");
     }
-    
-    code += expr1->genProgramCode(vecDataTypes);
-    code += expr2->genProgramCode(vecDataTypes);
 
-    code += "\n\n\t; Div expr";
-    code += "\n\tmov eax, " + expr1->place;
-    code += "\n\tcdq";
-    code += "\n\tmov ebx, " + expr2->place;
-    code += "\n\tidiv ebx";
-    code += "\n\tmov " + place + ", eax";
+    std::string loopLabel =   create_unique_label(this, "loop_div");
+    std::string endLabel =   create_unique_label(this, "loop_div2");
+    std::string dividend = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+    std::string divisor = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+    std::string quotient = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
+
+    code += "\n\n\t; División usando restas";
+    code += "\n\tmov eax, " + expr1->place;        
+    code += "\n\tmov " + dividend + ", eax";       
+    code += "\n\txor ecx, ecx";                     
+    code += "\n\tmov ebx, " + expr2->place;        
+    code += "\n\tcmp ebx, 0";                       
+    code += "\n\tje " + endLabel;                 
+    code += "\n" + loopLabel + ":";
+    code += "\n\tmov eax, " + dividend;             
+    code += "\n\tcmp eax, ebx";                    
+    code += "\n\tjl " + endLabel;                   
+    code += "\n\tsub eax, ebx";                     
+    code += "\n\tmov " + dividend + ", eax";        
+    code += "\n\tinc ecx";                         
+    code += "\n\tjmp " + loopLabel;                
+    code += "\n" + endLabel + ":";
+    code += "\n\tmov eax, ecx";                    
+    code += "\n\tmov " + quotient + ", eax";        
+    code += "\n\tmov " + place + ", eax";          
 
     return code;
 }
