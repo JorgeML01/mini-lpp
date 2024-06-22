@@ -44,13 +44,13 @@ std::string runAsm(const char *filename, const std::string& code)
 
 int main(int argc, char *argv[]) 
 {
-    if (argc != 4) {
+    if (argc != 3) {
         std::cerr << "Not enough CLI arguments\n";
         return 1;
     }
 
-    std::string inputFile = argv[2];
-    std::string outputFile = argv[3];
+    std::string inputFile = argv[1];
+    std::string outputFile = argv[2];
 
     std::ifstream in(inputFile, std::ios::in);
     if (!in.is_open()) {

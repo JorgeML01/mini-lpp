@@ -5,6 +5,6 @@ Inicio
     a <- 'A'
     x <- 11
     _y <- 3
-    z <- x mod _y
+    z <- x + _y
     Escriba z
 Fin
