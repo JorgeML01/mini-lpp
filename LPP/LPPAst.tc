@@ -432,18 +432,13 @@ genProgramCode(PrintStmt) {
             code += "\n\tmov eax, 1\t";
             code += "\n\tmov ebx, " + expr->place + "\t";
             break;
-
-
         
     }
 
     // Llamada al sistema para imprimir
     code += "\n\tint 0x80\t";
 
-    // Imprimir un salto de línea
-    code += "\n\tmov eax, 11\t";
-    code += "\n\tmov ebx, 10\t";
-    code += "\n\tint 0x80\t";
+
 
     return code;
 }

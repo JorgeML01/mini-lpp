@@ -25,7 +25,6 @@ int runCmd(const std::string& cmd, std::string& output)
 
     int status = pclose(stream);
     output = ssdata.str();
-    std::cout << status << std::endl;
     return status == 0 ? 0 : 1;
 }
 
