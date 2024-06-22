@@ -9,7 +9,7 @@
 std::string EAsm_Path = "../EasyASM-x86";
 
 // Función para ejecutar un comando y capturar su salida
-std::string runCmd(const std::string& cmd)
+int runCmd(const std::string& cmd, std::string& output)
 {
     FILE *stream = popen(cmd.c_str(), "r");
     if (stream == nullptr) {
@@ -19,15 +19,18 @@ std::string runCmd(const std::string& cmd)
     std::ostringstream ssdata;
     char buffer[256] = {0};
 
-    while (fgets(buffer, sizeof(buffer) - 1, stream))
+    while (fgets(buffer, sizeof(buffer) - 1, stream)) {
         ssdata << buffer;
+    }
 
-    pclose(stream);
-    return ssdata.str();
+    int status = pclose(stream);
+    output = ssdata.str();
+    std::cout << status << std::endl;
+    return status == 0 ? 0 : 1;
 }
 
 // Función para escribir el código ensamblador en un archivo y ejecutarlo
-std::string runAsm(const char *filename, const std::string& code)
+int runAsm(const char *filename, const std::string& code, std::string& output)
 {
     std::string asm_file = std::string(filename);
 
@@ -39,7 +42,7 @@ std::string runAsm(const char *filename, const std::string& code)
     out.close();
 
     std::string cmd = EAsm_Path + " --run " + asm_file + " 2>&1";
-    return runCmd(cmd);
+    return runCmd(cmd, output);
 }
 
 int main(int argc, char *argv[]) 
@@ -64,12 +67,17 @@ int main(int argc, char *argv[])
         parser.parse();
         std::string generatedCode = parser.getProgram()->genProgramCode(parser.getSymbolVectorDataTypes());
 
-        std::string output = runAsm(outputFile.c_str(), generatedCode);
+        std::string output;
+        int status = runAsm(outputFile.c_str(), generatedCode, output);
         std::cout << output << std::endl;
+        
+        return status;
 
     } catch(const std::runtime_error& ex){
         std::cerr << ex.what() << "\n";   
+        return 1; 
+    } catch (...) {
+        std::cerr << "An unknown error occurred\n";
+        return 1; 
     }
-
 }
-
