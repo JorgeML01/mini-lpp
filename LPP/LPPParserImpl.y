@@ -27,15 +27,16 @@ void yyerror(const LPPParser& parse, const char *msg)\
 
 %code requires
 {
-      #include <unordered_map>
-      #include <string>
+    #include <unordered_map>
+    #include <string>
 
 
-      class LPPParser;
+    class LPPParser;
 
-      using ParserValueType = AstNode*;
-      #define YYSTYPE ParserValueType
-      #define YYSTYPE_IS_DECLARED 1
+    using ParserValueType = AstNode*;
+    #define YYSTYPE ParserValueType
+    #define YYSTYPE_IS_DECLARED 1
+
 }
 
 %{
@@ -188,27 +189,27 @@ nuevo_tipo: ID
             | ID COMMA nuevo_tipo
 ;
 
-dec_entero: ENTERO lista_dec_enteros { $$ = $2; }
+dec_entero: ENTERO lista_dec_enteros { $$ = $2;}
 ;
 
-lista_dec_enteros : ID { $$ = $1;}
-                 | lista_dec_enteros COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3); }
+lista_dec_enteros : ID { $$ = $1; {parse.addVectorDataType(((IdentExpr*)$1)->text, "entero");}}
+                 | lista_dec_enteros COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3); parse.addVectorDataType(((IdentExpr*)$3)->text, "entero"); }
                  |  
 ;
 
 dec_booleano: BOOLEANO lista_dec_booleanos { $$ = $2;}
 ;
 
-lista_dec_booleanos : ID { $$ = $1;}
-                 | lista_dec_booleanos COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3);}
+lista_dec_booleanos : ID { $$ = $1; parse.addVectorDataType(((IdentExpr*)$1)->text, "booleano");}
+                 | lista_dec_booleanos COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3); parse.addVectorDataType(((IdentExpr*)$3)->text, "booleano");}
                  |
 ;
 
 dec_caracter: CARACTER lista_dec_caracteres  { $$ = $2; }
 ;
 
-lista_dec_caracteres: ID { $$ = $1; }
-                 | lista_dec_caracteres COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3); }
+lista_dec_caracteres: ID { $$ = $1; parse.addVectorDataType(((IdentExpr*)$1)->text, "caracter");}
+                 | lista_dec_caracteres COMMA ID { $$ = new IntDecl($1, (IdentExpr*)$3); parse.addVectorDataType(((IdentExpr*)$3)->text, "caracter");}
 ;
 
 dec_arreglo:  ARREGLO OPEN_BRA NUMBER CLOSE_BRA DE ENTERO ID 
@@ -289,7 +290,6 @@ repita_statement: REPITA block_statement HASTA expr
     $$ = new RepitaStmt($4, $2);
 }
 ;
-
 
 // EXPRESSIONS.
 args: expr

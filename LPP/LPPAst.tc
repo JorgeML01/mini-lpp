@@ -12,11 +12,6 @@
 	int offset = 4;
     int offsetNeg = 0;
 
-	int getOffset(){
-		
-		return offset;
-	}
-
 	int addOffset()
 	{
 		offset += 4;
@@ -27,11 +22,6 @@
         offsetNeg += 4;
     }
 
-    int getOffsetNeg()
-    {
-        return offsetNeg;
-    }
-
     int label_counter = 0;
 
     std::string create_unique_label(void* address, std::string nombre) {
@@ -40,6 +30,14 @@
         return label;
     }
 
+    std::string getTipo(std::string id, SymbolVectorDataTypes &vecDataTypes) {
+        for (auto &element : vecDataTypes) {
+            if (element.id == id) {
+                return element.type;
+            }
+        }
+        return "";
+    }
 %}
 
 %decls %{ // hpp code
@@ -56,7 +54,13 @@
         stdstring placeStack;
     };
 
+    struct structDataTypes {
+        stdstring id;
+        stdstring type;
+    };
+
     using SymbolVector = std::vector<structElements>;
+    using SymbolVectorDataTypes = std::vector<structDataTypes>;
 
 %}
 
@@ -164,7 +168,7 @@
 }
 
 %node CaracterExpr AstNode = {
-    stdstring caracter;
+    char caracter;
 }
 
 %node CadenaExpr AstNode = {
@@ -176,11 +180,11 @@
 }
 
 // OPERACIONES.
-%operation %virtual stdstring genProgramCode(AstNode *this) 
+%operation %virtual stdstring genProgramCode(AstNode *this, SymbolVectorDataTypes &vecDataTypes) 
 
 // Generación de código
 genProgramCode(LeaStmt) {
-    code += id->genProgramCode();
+    code += id->genProgramCode(vecDataTypes);
     code += "\n\n\tmov eax, 5";
     code += "\n\tint 0x80";
     code += "\n\tmov " + id->place + ", eax";
@@ -188,9 +192,9 @@ genProgramCode(LeaStmt) {
 }
 
 genProgramCode(InitialBlockStmt) {
-    code += stmt1->genProgramCode();
-    code += stmt2->genProgramCode();
-    code += stmt3->genProgramCode();
+    code += stmt1->genProgramCode(vecDataTypes);
+    code += stmt2->genProgramCode(vecDataTypes);
+    code += stmt3->genProgramCode(vecDataTypes);
 
     return code;
 }
@@ -198,8 +202,8 @@ genProgramCode(InitialBlockStmt) {
 genProgramCode(BlockStmt) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += stmt1->genProgramCode();
-    code += stmt2->genProgramCode();
+    code += stmt1->genProgramCode(vecDataTypes);
+    code += stmt2->genProgramCode(vecDataTypes);
 
 
     return code;
@@ -210,7 +214,7 @@ genProgramCode(AssignStmt) {
 
     for (auto& elem : vec) {
         if (elem.id == dynamic_cast<IdentExpr*>(var)->text) { 
-            var->genProgramCode();
+            var->genProgramCode(vecDataTypes);
             found = true;
             place = elem.placeStack;
             // Aquí podría poner directamente lo otro y hacer el return.
@@ -222,13 +226,85 @@ genProgramCode(AssignStmt) {
     if (!found) {
         throw SemError("Variable no declarada");
     }
+    
+    if (rvalue->isA(IdentExpr_kind)) {
+        found = false;
+        for (auto& elem : vec) {
+            if (elem.id == dynamic_cast<IdentExpr*>(rvalue)->text) {
+                found = true;
+                rvalue->genProgramCode(vecDataTypes);
+                break;
+            }
+        }
 
-    rvalue->genProgramCode();
+        if (!found) {
+            throw SemError("Variable no declarada");
+        }
+
+        if (getTipo(dynamic_cast<IdentExpr*>(var)->text, vecDataTypes) != getTipo(dynamic_cast<IdentExpr*>(rvalue)->text, vecDataTypes)) {
+            throw SemError("Tipos de datos incompatibles");
+        }
+    }
+    else if (rvalue->isA(BooleanExpr_kind)) {
+        found = false;
+        for (auto& elem : vec) {
+            if (elem.id == dynamic_cast<IdentExpr*>(var)->text) {
+                found = true;
+                rvalue->genProgramCode(vecDataTypes);
+                break;
+            }
+        }
+
+        if (!found) {
+            throw SemError("Variable no declarada");
+        }
+
+        if (getTipo(dynamic_cast<IdentExpr*>(var)->text, vecDataTypes) != "booleano") {
+            throw SemError("Tipos de datos incompatibles");
+        }
+    }
+    else if (rvalue->isA(NumExpr_kind)) {
+
+        found = false;
+        for (auto& elem : vec) {
+            if (elem.id == dynamic_cast<IdentExpr*>(var)->text) {
+                found = true;
+                rvalue->genProgramCode(vecDataTypes);
+                break;
+            }
+        }
+
+        if (!found) {
+            throw SemError("Variable no declarada");
+        }
+        if (getTipo(dynamic_cast<IdentExpr*>(var)->text, vecDataTypes) != "entero") {
+            throw SemError("Tipos de datos incompatibles");
+        }
+    
+    } else if (rvalue->isA(CaracterExpr_kind)){
+        found = false;
+        for (auto& elem : vec) {
+            if (elem.id == dynamic_cast<IdentExpr*>(var)->text) {
+                found = true;
+                rvalue->genProgramCode(vecDataTypes);
+                break;
+            }
+        }
+
+        if (!found) {
+            throw SemError("Variable no declarada");
+        }
+
+        if (getTipo(dynamic_cast<IdentExpr*>(var)->text, vecDataTypes) != "caracter") {
+            throw SemError("Tipos de datos incompatibles");
+        }
+    }
     
     code += rvalue->code;
     code += "\n\n\t; AssignStmt ";
     code += "\n\tmov eax, " + rvalue->place;
     code += "\n\tmov " + var->place + ", eax";
+
     return code;
 }
 
@@ -237,19 +313,21 @@ genProgramCode(PrintStmt) {
     int index = 0;
     std::stringstream ss;
 
+
     switch (expr->getKind()) {
         case NumExpr_kind:
-            expr->genProgramCode();
+            expr->genProgramCode(vecDataTypes);
             code += expr->code;
             code += "\n\tmov eax, 1\t";
             code += "\n\tmov ebx, " + expr->place + "\t";
             break;
         
         case IdentExpr_kind: 
+
             for (const auto& var : vec) {
                 if (var.id == static_cast<IdentExpr *>(expr)->text) {
                     found = true;
-                    expr->genProgramCode();
+                    expr->genProgramCode(vecDataTypes);
                     break;
                 }
             }
@@ -257,15 +335,42 @@ genProgramCode(PrintStmt) {
             if (!found) {
                 throw SemError("Not declared variable");
             }
+            
+            if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "entero") {
+                code += expr->code;
+                code += "\n\tmov eax, 1\t";
+                code += "\n\tmov ebx, " + expr->place + "\t";
+            } else if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "caracter") {
+                code += expr->genProgramCode(vecDataTypes);
+                code += "\n\tmov eax, 11\t";
+                code += "\n\tmov ebx, " + expr->place + "\t";
+            } else if (getTipo(dynamic_cast<IdentExpr*>(expr)->text, vecDataTypes) == "booleano") {
+                code += "\n\tmov esi, 0x10000000\t";
+                code += "\n\tlea ebx, [esi+4]\t";
 
-            code += expr->code;
-            code += "\n\tmov eax, 1\t";
-            code += "\n\tmov ebx, " + expr->place + "\t";
+                std::string etiqueta_1 = create_unique_label(this, "print_stmt_1");
+                std::string etiqueta_2 = create_unique_label(this, "print_stmt_2");
+
+                code += "\n\tmove eax, " + expr->place;
+                code += "\n\tcmp eax, 0";
+                code += "\n\tje " + etiqueta_1;
+                code += "\n\tmov dword [ebx], 0x45445256\t"; // "VERD" en hexadecimal
+                code += "\n\tmov dword [ebx + 4], 0x52454441\t"; // "ADER" en hexadecimal
+                code += "\n\tmov dword [ebx + 8], 0x4F\t"; // "O" en hexadecimal
+                code += "\n\tmov dword [ebx + 9], 0\t";
+                
+                code += etiqueta_1 + ":";
+                code += "\n\tmov dword [ebx], 0x534C4146\t"; // "FALS" en hexadecimal
+                code += "\n\tmov dword [ebx + 4], 0x4F\t"; // "O" en hexadecimal
+                code += "\n\tmov dword [ebx + 5], 0\t";
+
+                code += etiqueta_2 + ":";
+                code += "\n\tmov eax, 4\t";
+                code += "\n\tlea ebx, [esi+4]\t";
+            } 
             break;
-
         case CadenaExpr_kind:
-        case CaracterExpr_kind:
-            expr->genProgramCode();
+            expr->genProgramCode(vecDataTypes);
             code += "\n\tmov esi, 0x10000000\t";
             code += "\n\tlea ebx, [esi+4]\t";
 
@@ -299,9 +404,13 @@ genProgramCode(PrintStmt) {
             code += "\n\tmov eax, 4\t";
             code += "\n\tlea ebx, [esi+4]\t";
             break;
-
+        case CaracterExpr_kind:
+            code += expr->genProgramCode(vecDataTypes);
+            code += "\n\tmov eax, 11\t";
+            code += "\n\tmov ebx, " + expr->place + "\t";
+            break;
         case BooleanExpr_kind:
-            expr->genProgramCode();
+            expr->genProgramCode(vecDataTypes);
             code += "\n\tmov esi, 0x10000000\t";
             code += "\n\tlea ebx, [esi+4]\t";
 
@@ -321,11 +430,14 @@ genProgramCode(PrintStmt) {
             break;
 
         default:
-            expr->genProgramCode();
+            expr->genProgramCode(vecDataTypes);
             code += expr->code;
             code += "\n\tmov eax, 1\t";
             code += "\n\tmov ebx, " + expr->place + "\t";
             break;
+
+
+        
     }
 
     // Llamada al sistema para imprimir
@@ -342,7 +454,7 @@ genProgramCode(PrintStmt) {
 genProgramCode(IfStmt) {
 
     // Generar el código para la condición
-    code += cond->genProgramCode();
+    code += cond->genProgramCode(vecDataTypes);
     
     // Crear etiquetas únicas para las ramas true y false
     std::string etiqueta_true = create_unique_label(this, "if_true_");
@@ -353,12 +465,12 @@ genProgramCode(IfStmt) {
     code += "\n\tje " + etiqueta_true;
 
     // Generar el código para la rama verdadera
-    code += stmt_true->genProgramCode();
+    code += stmt_true->genProgramCode(vecDataTypes);
     code += "\n\tjmp " + etiqueta_end;
 
     // Generar el código para la rama falsa
     code += "\n\n" + etiqueta_true + ":";
-    code += stmt_false->genProgramCode();
+    code += stmt_false->genProgramCode(vecDataTypes);
 
     code += "\n\n" + etiqueta_end + ":";
 
@@ -373,10 +485,10 @@ genProgramCode(WhileStmt) {
 
     code += "\n\n; WhileStmt";
     code += "\n" + etiqueta_1 + ":";
-    code += cond->genProgramCode();
+    code += cond->genProgramCode(vecDataTypes);
     code += "\n\tcmp " + cond->place + ", 0";
     code += "\n\tje " + etiqueta_2;
-    code += stmt->genProgramCode();
+    code += stmt->genProgramCode(vecDataTypes);
     code += "\n\tjmp " + etiqueta_1;
 
     code += "\n\n\t" + etiqueta_2 + ":";
@@ -391,8 +503,8 @@ genProgramCode(RepitaStmt) {
 
     code += "\n\n; RepitaStmt";
     code += "\n" + etiqueta_1 + ":";
-    code += stmt->genProgramCode();
-    code += cond->genProgramCode();
+    code += stmt->genProgramCode(vecDataTypes);
+    code += cond->genProgramCode(vecDataTypes);
     code += "\n\tcmp " + cond->place + ", 1";
     code += "\n\tje " + etiqueta_2;
     code += "\n\tjmp " + etiqueta_1;
@@ -407,8 +519,8 @@ genProgramCode(ForStmt) {
     std::string etiqueta_1 = create_unique_label(this, "for_stmt_1");
     std::string etiqueta_2 = create_unique_label(this, "for_stmt_2");
     
-    code += init->genProgramCode();
-    limite->genProgramCode();
+    code += init->genProgramCode(vecDataTypes);
+    limite->genProgramCode(vecDataTypes);
     
     code += "\n\n\t; ForStmt";
     code += "\n" + etiqueta_1 + ":";
@@ -416,7 +528,7 @@ genProgramCode(ForStmt) {
     code += "\n\tcmp eax, " + limite->place;
 
     code += "\n\tjg " + etiqueta_2;
-    code += stmt->genProgramCode();
+    code += stmt->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Incremento de la variable de control";
     code += "\n\tadd " + init->place + ", 1";
@@ -430,8 +542,8 @@ genProgramCode(ForStmt) {
 genProgramCode(AddExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Suma";
     code += "\n\tmov eax, " + expr1->place;
@@ -444,8 +556,8 @@ genProgramCode(AddExpr) {
 genProgramCode(SubExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Resta";
     code += "\n\tmov eax, " + expr1->place;
@@ -458,8 +570,8 @@ genProgramCode(SubExpr) {
 genProgramCode(MultExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Multiplicación";
     code += "\n\tmov eax, " + expr1->place;
@@ -475,8 +587,8 @@ genProgramCode(EqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "eq_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "eq_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Equal expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -500,8 +612,8 @@ genProgramCode(LessOrEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "less_eq_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "less_eq_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; LessOrEqual expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -524,8 +636,8 @@ genProgramCode(LessExpr) {
     std::string etiqueta_1 = create_unique_label(this, "less_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "less_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Less expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -548,8 +660,8 @@ genProgramCode(GreaterOrEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "ge_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "ge_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; GreaterOrEqual expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -572,8 +684,8 @@ genProgramCode(GreaterExpr) {
     std::string etiqueta_1 = create_unique_label(this, "greater_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "greater_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Greater expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -596,8 +708,8 @@ genProgramCode(NotEqualExpr) {
     std::string etiqueta_1 = create_unique_label(this, "not_equal_expr_1");
     std::string etiqueta_2 = create_unique_label(this, "not_equal_expr_2");
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; NotEqual expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -617,8 +729,8 @@ genProgramCode(NotEqualExpr) {
 genProgramCode(AndExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
      code += "\n\t; And expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -631,8 +743,8 @@ genProgramCode(AndExpr) {
 genProgramCode(OrExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Or expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -647,8 +759,8 @@ genProgramCode(OrExpr) {
 genProgramCode(ModExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Mod expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -664,8 +776,8 @@ genProgramCode(ModExpr) {
 genProgramCode(DivExpr) {
     place = "dword[ebp - " + std::to_string(addOffsetNeg()) + "]";
 
-    code += expr1->genProgramCode();
-    code += expr2->genProgramCode();
+    code += expr1->genProgramCode(vecDataTypes);
+    code += expr2->genProgramCode(vecDataTypes);
 
     code += "\n\n\t; Div expr";
     code += "\n\tmov eax, " + expr1->place;
@@ -678,15 +790,15 @@ genProgramCode(DivExpr) {
 }
 
 genProgramCode(DecVarStmt) {
-    code += var1->genProgramCode();
-    code += var2->genProgramCode();
+    code += var1->genProgramCode(vecDataTypes);
+    code += var2->genProgramCode(vecDataTypes);
 
     return code;
 }
 
 genProgramCode(IntDecl) {
-    code += var1->genProgramCode();
-    code += var2->genProgramCode();
+    code += var1->genProgramCode(vecDataTypes);
+    code += var2->genProgramCode(vecDataTypes);
     
     return code;
 }
@@ -729,14 +841,14 @@ genProgramCode(CadenaExpr) {
 }
 
 genProgramCode(CaracterExpr) {
-    place = caracter;
+    place = std::to_string(static_cast<int>(caracter));
 
     return code;
 }
 
 genProgramCode(Program) {
 
-    stmts->genProgramCode();
+    stmts->genProgramCode(vecDataTypes);
 
     for (auto &element : vec) {
         code += "\n\tpush 0";

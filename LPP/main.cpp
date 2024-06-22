@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     LPPParser parser(lexer);
     try {
         parser.parse();
-        std::string generatedCode = parser.getProgram()->genProgramCode();
+        std::string generatedCode = parser.getProgram()->genProgramCode(parser.getSymbolVectorDataTypes());
 
         std::string output = runAsm(outputFile.c_str(), generatedCode);
         std::cout << output << std::endl;

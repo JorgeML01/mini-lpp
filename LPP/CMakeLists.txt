@@ -46,5 +46,7 @@ add_executable(${PROJECT_NAME}
     LPPParser.cpp
     LPPAst.hpp
     LPPAst.cpp
+    SemError.hpp
+    ParserDataTypes.hpp
     main.cpp
  )

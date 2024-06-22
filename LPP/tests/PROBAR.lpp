@@ -1,3 +1,10 @@
+Booleano hola, carro, casa
+Caracter a,_y,z
+Entero k,l,M
+
 inicio
-    escriba "Hola Mundo" 
+    k <- 3
+    a <- k
+    escriba k
+    escriba a
 fin

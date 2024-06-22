@@ -1,6 +1,3 @@
-Entero x
-
 inicio
-    lea x
-    escriba x
+    Escriba "Hola Mundo"
 fin

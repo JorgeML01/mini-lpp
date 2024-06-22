@@ -86,8 +86,7 @@
                             *lval = new CadenaExpr(text); return Token::IDENT_CADENA; 
                         }
 \'[^\']\'               { 
-                            std::string text = std::string(yytext); text.erase(std::remove(text.begin(), text.end(), '\''), text.end());
-                            *lval = new CaracterExpr(text); return Token::IDENT_CARACTER; 
+                            *lval = new CaracterExpr(yytext[1]); return Token::IDENT_CARACTER; 
                         }
 
 [0-9]+(\.[0-9]+)?	{  *lval = new NumExpr(std::atoi(yytext)); return Token::NUMBER; }
