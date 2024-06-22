@@ -232,7 +232,7 @@ statement:  | print_statement { $$ = $1; }
             | return_statement
             | mientras_statement { $$ = $1;}
             | para_statement { $$ = $1; }
-            | repita_statement 
+            | repita_statement { $$ = $1;}
             | lea_statement { $$ = $1; }
             | si_statement { $$ = $1; }
             |
@@ -285,6 +285,9 @@ para_statement: PARA ID OP_ASSIGN expr HASTA expr HAGA block_statement FIN PARA
 ;
 
 repita_statement: REPITA block_statement HASTA expr
+{
+    $$ = new RepitaStmt($4, $2);
+}
 ;
 
 

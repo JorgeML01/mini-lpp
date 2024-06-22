@@ -116,6 +116,11 @@
     AstNode *stmt;
 }
 
+%node RepitaStmt Stmt = {
+    AstNode *cond;
+    AstNode *stmt;
+}
+
 %node DecVarStmt Stmt = {
     AstNode *var1;
     AstNode *var2;
@@ -334,10 +339,6 @@ genProgramCode(PrintStmt) {
     return code;
 }
 
-
-
-
-
 genProgramCode(IfStmt) {
 
     // Generar el código para la condición
@@ -384,6 +385,22 @@ genProgramCode(WhileStmt) {
     return code;
 }
 
+genProgramCode(RepitaStmt) {
+    std::string etiqueta_1 = create_unique_label(this, "repita_stmt_1");
+    std::string etiqueta_2 = create_unique_label(this, "repita_stmt_2");
+
+    code += "\n\n; RepitaStmt";
+    code += "\n" + etiqueta_1 + ":";
+    code += stmt->genProgramCode();
+    code += cond->genProgramCode();
+    code += "\n\tcmp " + cond->place + ", 1";
+    code += "\n\tje " + etiqueta_2;
+    code += "\n\tjmp " + etiqueta_1;
+
+    code += "\n\n\t" + etiqueta_2 + ":";
+
+    return code;
+}
 
 genProgramCode(ForStmt) {
     
